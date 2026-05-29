@@ -1,0 +1,11 @@
+(package
+  (name "tl-platformer")
+  (version "0.1.0")
+
+  (dependencies)
+
+  (link
+    (libraries "raylib")
+    (search-paths "vendor/raylib/lib")
+    (windows-libraries "opengl32" "gdi32" "winmm" "shell32" "user32")
+    (linux-libraries "GL" "m" "pthread" "dl" "rt" "X11")))
