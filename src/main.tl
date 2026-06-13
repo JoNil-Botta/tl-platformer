@@ -1,4 +1,5 @@
 (import "stdlib/ffi.tl")
+(import "src/wfc.tl")
 
 (defstruct Color (r u8) (g u8) (b u8) (a u8))
 (defstruct Rectangle (x f32) (y f32) (width f32) (height f32))
@@ -28,6 +29,9 @@
 (define TILE-F : f32 (cast TILE : f32))
 
 (define level : (Array i64) (make-array i64 300))
+
+;; WFC grid for level generation
+(define wfc-grid : (Array i64) (make-array i64 300))
 
 (define px : f64 64.0)
 (define py : f64 64.0)
@@ -91,15 +95,23 @@
 
 (define (main) : i64
   (begin
-    (let ([i : i64 0])
-      (while (< i 300) (begin (array-set! level i 0) (set! i (+ i 1)))))
-    (let ([c : i64 0])
-      (while (< c COLS)
-        (begin (array-set! level (+ (* 14 COLS) c) 1) (set! c (+ c 1)))))
-    (array-set! level (+ (* 11 COLS) 5) 1)
-    (array-set! level (+ (* 11 COLS) 6) 1)
-    (array-set! level (+ (* 9 COLS) 10) 1)
-
+    ;; Generate level using WFC
+    (let
+      [wfc-success : bool (wfc-generate wfc-grid)]
+      (begin
+        (if wfc-success
+          (wfc-to-level wfc-grid level)
+          (begin
+            ;; Fallback: clear level and create simple ground
+            (let ([i : i64 0])
+              (while (< i 300) (begin (array-set! level i 0) (set! i (+ i 1)))))
+            (let ([c : i64 0])
+              (while (< c COLS)
+                (begin (array-set! level (+ (* 14 COLS) c) 1) (set! c (+ c 1)))))
+            (array-set! level (+ (* 11 COLS) 5) 1)
+            (array-set! level (+ (* 11 COLS) 6) 1)
+            (array-set! level (+ (* 9 COLS) 10) 1)))))
+    
     (InitWindow WIDTH HEIGHT (ffi-cstr "tl-platformer"))
     (SetTargetFPS 60)
     (while (not (WindowShouldClose))
