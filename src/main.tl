@@ -1,5 +1,7 @@
-(defstruct Color (:repr c) (r u8) (g u8) (b u8) (a u8))
-(defstruct Rectangle (:repr c) (x f32) (y f32) (width f32) (height f32))
+(import "stdlib/ffi.tl")
+
+(defstruct Color (r u8) (g u8) (b u8) (a u8))
+(defstruct Rectangle (x f32) (y f32) (width f32) (height f32))
 
 (extern InitWindow     : (-> i32 i32 (Ptr u8) unit))
 (extern SetTargetFPS   : (-> i32 unit))
@@ -21,6 +23,10 @@
 (define COLS   : i64 20)
 (define ROWS   : i64 15)
 
+(define WIDTH  : i32 (cast (* COLS TILE) : i32))
+(define HEIGHT : i32 (cast (* ROWS TILE) : i32))
+(define TILE-F : f32 (cast TILE : f32))
+
 (define level : (Array i64) (make-array i64 300))
 
 (define px : f64 64.0)
@@ -34,8 +40,8 @@
 (define JUMP-VEL  : f64 -520.0)
 
 (define (tile-solid? [col : i64] [row : i64]) : bool
-  (if (or (< col 0) (or (>= col COLS) (or (< row 0) (>= row ROWS))))
-    true                                   ; out of bounds = wall
+  (if (or (< col 0) (>= col COLS) (< row 0) (>= row ROWS))
+    true
     (= (array-ref level (+ (* row COLS) col)) 1)))
 
 (define (solid-at? [wx : f64] [wy : f64]) : bool
@@ -44,11 +50,11 @@
 (define (update [dt : f64]) : unit
   (begin
     (set! vx 0.0)
-    (if (IsKeyDown KEY_RIGHT) (set! vx MOVE-SPEED) unit)
-    (if (IsKeyDown KEY_LEFT)  (set! vx (- 0.0 MOVE-SPEED)) unit)
-    (if (and on-ground (IsKeyDown KEY_SPACE))
-      (begin (set! vy JUMP-VEL) (set! on-ground false))
-      unit)
+    (when (IsKeyDown KEY_RIGHT) (set! vx MOVE-SPEED))
+    (when (IsKeyDown KEY_LEFT)  (set! vx (- 0.0 MOVE-SPEED)))
+    (when (and on-ground (IsKeyDown KEY_SPACE))
+      (set! vy JUMP-VEL)
+      (set! on-ground false))
     (set! vy (+ vy (* GRAVITY dt)))
     (set! px (+ px (* vx dt)))
     (set! py (+ py (* vy dt)))
@@ -62,26 +68,23 @@
 (define (draw) : unit
   (begin
     (BeginDrawing)
-    (ClearBackground (Color 135 206 235 255))   ; sky blue
+    (ClearBackground (Color 135 206 235 255))
     (let ([row : i64 0])
       (while (< row ROWS)
-        (begin
-          (let ([col : i64 0])
-            (while (< col COLS)
-              (begin
-                (if (tile-solid? col row)
-                  (DrawRectangleRec
-                    (Rectangle
-                      (cast (* col TILE) : f32) (cast (* row TILE) : f32)
-                      (cast TILE : f32) (cast TILE : f32))
-                    (Color 90 60 30 255))
-                  unit)
-                (set! col (+ col 1)))))
-          (set! row (+ row 1)))))
+        (let ([col : i64 0])
+          (while (< col COLS)
+            (when (tile-solid? col row)
+              (DrawRectangleRec
+                (Rectangle
+                  (cast (* col TILE) : f32) (cast (* row TILE) : f32)
+                  TILE-F TILE-F)
+                (Color 90 60 30 255)))
+            (set! col (+ col 1))))
+        (set! row (+ row 1))))
     (DrawRectangleRec
       (Rectangle (cast px : f32) (cast py : f32) 28.0 28.0)
       (Color 220 40 40 255))
-    (DrawText (cstr "tl-platformer") 12 12 20 (Color 30 30 30 255))
+    (DrawText (ffi-cstr "tl-platformer") 12 12 20 (Color 30 30 30 255))
     (EndDrawing)))
 
 (define (main) : i64
@@ -90,13 +93,12 @@
       (while (< i 300) (begin (array-set! level i 0) (set! i (+ i 1)))))
     (let ([c : i64 0])
       (while (< c COLS)
-        (begin (array-set! level (+ (* 14 COLS) c) 1) (set! c (+ c 1)))))  ; floor
+        (begin (array-set! level (+ (* 14 COLS) c) 1) (set! c (+ c 1)))))
     (array-set! level (+ (* 11 COLS) 5) 1)
     (array-set! level (+ (* 11 COLS) 6) 1)
     (array-set! level (+ (* 9 COLS) 10) 1)
 
-    (InitWindow (cast (* COLS TILE) : i32) (cast (* ROWS TILE) : i32)
-                (cstr "tl-platformer"))
+    (InitWindow WIDTH HEIGHT (ffi-cstr "tl-platformer"))
     (SetTargetFPS 60)
     (while (not (WindowShouldClose))
       (begin
