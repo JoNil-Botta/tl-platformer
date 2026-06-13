@@ -3,17 +3,17 @@
 (defstruct Color (r u8) (g u8) (b u8) (a u8))
 (defstruct Rectangle (x f32) (y f32) (width f32) (height f32))
 
-(extern InitWindow     : (-> i32 i32 (Ptr u8) unit))
-(extern SetTargetFPS   : (-> i32 unit))
-(extern WindowShouldClose : (-> bool))
-(extern BeginDrawing   : (-> unit))
-(extern EndDrawing     : (-> unit))
-(extern ClearBackground : (-> Color unit))
-(extern DrawRectangleRec : (-> Rectangle Color unit))
-(extern DrawText       : (-> (Ptr u8) i32 i32 i32 Color unit))
-(extern IsKeyDown      : (-> i32 bool))
-(extern GetFrameTime   : (-> f32))
-(extern CloseWindow    : (-> unit))
+(extern (InitWindow [width : i32] [height : i32] [title : (Ptr u8)]) : unit)
+(extern (SetTargetFPS [fps : i32]) : unit)
+(extern (WindowShouldClose) : bool)
+(extern (BeginDrawing) : unit)
+(extern (EndDrawing) : unit)
+(extern (ClearBackground [color : Color]) : unit)
+(extern (DrawRectangleRec [rec : Rectangle] [color : Color]) : unit)
+(extern (DrawText [text : (Ptr u8)] [posX : i32] [posY : i32] [fontSize : i32] [color : Color]) : unit)
+(extern (IsKeyDown [key : i32]) : bool)
+(extern (GetFrameTime) : f32)
+(extern (CloseWindow) : unit)
 
 (define KEY_RIGHT : i32 262)
 (define KEY_LEFT  : i32 263)
@@ -71,16 +71,18 @@
     (ClearBackground (Color 135 206 235 255))
     (let ([row : i64 0])
       (while (< row ROWS)
-        (let ([col : i64 0])
-          (while (< col COLS)
-            (when (tile-solid? col row)
-              (DrawRectangleRec
-                (Rectangle
-                  (cast (* col TILE) : f32) (cast (* row TILE) : f32)
-                  TILE-F TILE-F)
-                (Color 90 60 30 255)))
-            (set! col (+ col 1))))
-        (set! row (+ row 1))))
+        (begin
+          (let ([col : i64 0])
+            (while (< col COLS)
+              (begin
+                (when (tile-solid? col row)
+                  (DrawRectangleRec
+                    (Rectangle
+                      (cast (* col TILE) : f32) (cast (* row TILE) : f32)
+                      TILE-F TILE-F)
+                    (Color 90 60 30 255)))
+                (set! col (+ col 1)))))
+          (set! row (+ row 1)))))
     (DrawRectangleRec
       (Rectangle (cast px : f32) (cast py : f32) 28.0 28.0)
       (Color 220 40 40 255))
