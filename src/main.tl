@@ -1,5 +1,6 @@
 (import "stdlib/ffi.tl")
 (import "src/wfc.tl")
+(import "src/assets.tl")
 
 (defstruct Color (r u8) (g u8) (b u8) (a u8))
 (defstruct Rectangle (x f32) (y f32) (width f32) (height f32))
@@ -29,8 +30,6 @@
 (define TILE-F : f32 (cast TILE : f32))
 
 (define level : (Array i64) (make-array i64 300))
-
-;; WFC grid for level generation
 (define wfc-grid : (Array i64) (make-array i64 300))
 
 (define px : f64 64.0)
@@ -67,7 +66,8 @@
         (set! py (cast (* (/ (cast py : i64) TILE) TILE) : f64))
         (set! vy 0.0)
         (set! on-ground true))
-      (set! on-ground false))))
+      (set! on-ground false))
+    (update-player-anim dt vx vy on-ground)))
 
 (define (draw) : unit
   (begin
@@ -79,17 +79,14 @@
           (let ([col : i64 0])
             (while (< col COLS)
               (begin
-                (when (tile-solid? col row)
-                  (DrawRectangleRec
-                    (Rectangle
-                      (cast (* col TILE) : f32) (cast (* row TILE) : f32)
-                      TILE-F TILE-F)
-                    (Color 90 60 30 255)))
+                (draw-tile
+                  (cast (* col TILE) : f32)
+                  (cast (* row TILE) : f32)
+                  TILE-F
+                  (array-ref level (cell-idx row col)))
                 (set! col (+ col 1)))))
           (set! row (+ row 1)))))
-    (DrawRectangleRec
-      (Rectangle (cast px : f32) (cast py : f32) 28.0 28.0)
-      (Color 220 40 40 255))
+    (draw-player px py TILE-F)
     (DrawText (ffi-cstr "tl-platformer") 12 12 20 (Color 30 30 30 255))
     (EndDrawing)))
 
@@ -114,9 +111,11 @@
     
     (InitWindow WIDTH HEIGHT (ffi-cstr "tl-platformer"))
     (SetTargetFPS 60)
+    (load-assets)
     (while (not (WindowShouldClose))
       (begin
         (update (cast (GetFrameTime) : f64))
         (draw)))
+    (unload-assets)
     (CloseWindow)
     0))
