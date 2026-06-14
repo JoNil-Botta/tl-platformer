@@ -1,46 +1,90 @@
 (import "stdlib/ffi.tl")
-(import "src/wfc.tl")
-(import "src/assets.tl")
 
-(defstruct Color (r u8) (g u8) (b u8) (a u8))
-(defstruct Rectangle (x f32) (y f32) (width f32) (height f32))
+(import "wfc.tl")
+
+(import "assets.tl")
 
 (extern (InitWindow [width : i32] [height : i32] [title : (Ptr u8)]) : unit)
+
 (extern (SetTargetFPS [fps : i32]) : unit)
+
 (extern (WindowShouldClose) : bool)
+
 (extern (BeginDrawing) : unit)
+
 (extern (EndDrawing) : unit)
+
 (extern (ClearBackground [color : Color]) : unit)
-(extern (DrawRectangleRec [rec : Rectangle] [color : Color]) : unit)
-(extern (DrawText [text : (Ptr u8)] [posX : i32] [posY : i32] [fontSize : i32] [color : Color]) : unit)
+
+(extern (DrawText
+  [text : (Ptr u8)]
+  [posX : i32]
+  [posY : i32]
+  [fontSize : i32]
+  [color : Color]) : unit)
+
 (extern (IsKeyDown [key : i32]) : bool)
+
 (extern (GetFrameTime) : f32)
+
 (extern (CloseWindow) : unit)
 
-(define KEY_RIGHT : i32 262)
-(define KEY_LEFT  : i32 263)
-(define KEY_SPACE : i32 32)
+(define KEY_RIGHT : i32
+  (cast 262 : i32))
 
-(define TILE   : i64 32)
-(define COLS   : i64 20)
-(define ROWS   : i64 15)
+(define KEY_LEFT : i32
+  (cast 263 : i32))
 
-(define WIDTH  : i32 (cast (* COLS TILE) : i32))
-(define HEIGHT : i32 (cast (* ROWS TILE) : i32))
-(define TILE-F : f32 (cast TILE : f32))
+(define KEY_SPACE : i32
+  (cast 32 : i32))
 
-(define level : (Array i64) (make-array i64 300))
-(define wfc-grid : (Array i64) (make-array i64 300))
+(define TILE : i64
+  (cast 32 : i64))
 
-(define px : f64 64.0)
-(define py : f64 64.0)
-(define vx : f64 0.0)
-(define vy : f64 0.0)
-(define on-ground : bool false)
+(define COLS : i64
+  (cast 20 : i64))
 
-(define GRAVITY   : f64 1400.0)
-(define MOVE-SPEED : f64 220.0)
-(define JUMP-VEL  : f64 -520.0)
+(define ROWS : i64
+  (cast 15 : i64))
+
+(define WIDTH : i32
+  (cast (* COLS TILE) : i32))
+
+(define HEIGHT : i32
+  (cast (* ROWS TILE) : i32))
+
+(define TILE-F : f32
+  (cast TILE : f32))
+
+(define level : (Array i64)
+  (make-array i64 300))
+
+(define wfc-grid : (Array i64)
+  (make-array i64 300))
+
+(define px : f64
+  64.0)
+
+(define py : f64
+  64.0)
+
+(define vx : f64
+  0.0)
+
+(define vy : f64
+  0.0)
+
+(define on-ground : bool
+  false)
+
+(define GRAVITY : f64
+  1400.0)
+
+(define MOVE-SPEED : f64
+  220.0)
+
+(define JUMP-VEL : f64
+  -520.0)
 
 (define (tile-solid? [col : i64] [row : i64]) : bool
   (if (or (< col 0) (>= col COLS) (< row 0) (>= row ROWS))
@@ -54,10 +98,12 @@
   (begin
     (set! vx 0.0)
     (when (IsKeyDown KEY_RIGHT) (set! vx MOVE-SPEED))
-    (when (IsKeyDown KEY_LEFT)  (set! vx (- 0.0 MOVE-SPEED)))
-    (when (and on-ground (IsKeyDown KEY_SPACE))
-      (set! vy JUMP-VEL)
-      (set! on-ground false))
+    (when (IsKeyDown KEY_LEFT) (set! vx (- 0.0 MOVE-SPEED)))
+    (when
+      (and on-ground (IsKeyDown KEY_SPACE))
+      (begin
+        (set! vy JUMP-VEL)
+        (set! on-ground false)))
     (set! vy (+ vy (* GRAVITY dt)))
     (set! px (+ px (* vx dt)))
     (set! py (+ py (* vy dt)))
@@ -72,11 +118,14 @@
 (define (draw) : unit
   (begin
     (BeginDrawing)
-    (ClearBackground (Color 135 206 235 255))
-    (let ([row : i64 0])
+    (ClearBackground
+      (Color (cast 135 : u8) (cast 206 : u8) (cast 235 : u8) (cast 255 : u8)))
+    (let
+      [row : i64 0]
       (while (< row ROWS)
         (begin
-          (let ([col : i64 0])
+          (let
+            [col : i64 0]
             (while (< col COLS)
               (begin
                 (draw-tile
@@ -87,7 +136,12 @@
                 (set! col (+ col 1)))))
           (set! row (+ row 1)))))
     (draw-player px py TILE-F)
-    (DrawText (ffi-cstr "tl-platformer") 12 12 20 (Color 30 30 30 255))
+    (DrawText
+      (ffi-cstr "tl-platformer")
+      (cast 12 : i32)
+      (cast 12 : i32)
+      (cast 20 : i32)
+      (Color (cast 30 : u8) (cast 30 : u8) (cast 30 : u8) (cast 255 : u8)))
     (EndDrawing)))
 
 (define (main) : i64
@@ -100,17 +154,23 @@
           (wfc-to-level wfc-grid level)
           (begin
             ;; Fallback: clear level and create simple ground
-            (let ([i : i64 0])
-              (while (< i 300) (begin (array-set! level i 0) (set! i (+ i 1)))))
-            (let ([c : i64 0])
+            (let
+              [i : i64 0]
+              (while (< i (cast 300 : i64))
+                (begin
+                  (array-set! level i 0)
+                  (set! i (+ i 1)))))
+            (let
+              [c : i64 0]
               (while (< c COLS)
-                (begin (array-set! level (+ (* 14 COLS) c) 1) (set! c (+ c 1)))))
-            (array-set! level (+ (* 11 COLS) 5) 1)
-            (array-set! level (+ (* 11 COLS) 6) 1)
-            (array-set! level (+ (* 9 COLS) 10) 1)))))
-    
+                (begin
+                  (array-set! level (+ (* (cast 14 : i64) COLS) c) 1)
+                  (set! c (+ c 1)))))
+            (array-set! level (+ (* (cast 11 : i64) COLS) 5) 1)
+            (array-set! level (+ (* (cast 11 : i64) COLS) 6) 1)
+            (array-set! level (+ (* (cast 9 : i64) COLS) 10) 1)))))
     (InitWindow WIDTH HEIGHT (ffi-cstr "tl-platformer"))
-    (SetTargetFPS 60)
+    (SetTargetFPS (cast 60 : i32))
     (load-assets)
     (while (not (WindowShouldClose))
       (begin
