@@ -19,16 +19,21 @@ Side-scrolling platformer with:
 - [x] WFC-based level generation (simplified)
 - [x] Asset loading (textures, sprite sheets)
 - [x] Player animation (idle/run/jump/fall)
+- [x] Player extracted to `player.tl` with testable update function
+- [x] Physics extracted to `physics.tl` with AABB collision
+- [x] Coyote time, jump buffering, variable jump height
+- [x] `tests/test_player.tl` — 11 tests (movement, jump, coyote, buffer, variable)
+- [x] `tests/test_physics.tl` — 11 tests (collision, wall, ground, ceiling, floor-div)
 
-## Phase 1: Solid Foundation (Next)
+## Phase 1: Solid Foundation (Current — mostly done)
 
 ### Physics
-- [ ] Horizontal collision (walls, platforms from sides)
-- [ ] Ceiling collision (bonk head on blocks)
-- [ ] Proper AABB collision instead of point sampling
-- [ ] Coyote time (grace period for jumping after leaving ground)
-- [ ] Jump buffering (queue jump input before landing)
-- [ ] Variable jump height (hold space = higher)
+- [x] Horizontal collision (walls, platforms from sides)
+- [x] Ceiling collision (bonk head on blocks)
+- [x] Proper AABB collision instead of point sampling
+- [x] Coyote time (grace period for jumping after leaving ground)
+- [x] Jump buffering (queue jump input before landing)
+- [x] Variable jump height (hold space = higher)
 
 ### Camera
 - [ ] Smooth follow camera with lookahead
@@ -206,12 +211,14 @@ tests/
 
 ## Immediate Next Steps
 
-1. **Create `game_state.tl`** — `GameState` struct, `Input` struct, pure `update` function
-2. **Extract player into `player.tl`** — decouple from main, testable without Raylib
-3. **Add `physics.tl`** — AABB collision, horizontal + vertical
-4. **Add `tests/test_player.tl`** — simulate inputs, assert positions
-5. **Add `tests/test_physics.tl`** — collision scenarios with hand-built levels
-6. **Flag any language snags** as issues during the above
+1. ~~Create `game_state.tl`~~ — `GameState` struct, `Input` struct, pure `update` function (deferred; globals work for now)
+2. ~~Extract player into `player.tl`~~ ✅ Done
+3. ~~Add `physics.tl`~~ ✅ Done
+4. ~~Add `tests/test_player.tl`~~ ✅ Done
+5. ~~Add `tests/test_physics.tl`~~ ✅ Done
+6. **Add `camera.tl`** — smooth follow with lookahead, bounds
+7. **Add `world.tl`** — scrolling level, start/goal zones, flag pole
+8. **Flag any language snags** as issues during the above
 
 ## Notes
 
