@@ -26,11 +26,21 @@
     true
     (= (array-ref level (+ (* row cols) col)) 1)))
 
+;; Floor division: works correctly for negative numerators
+;; C integer division truncates toward zero; we need floor for tile coords
+(define (floor-div [a : i64] [b : i64]) : i64
+  (let
+    [q : i64 (/ a b)]
+    [r : i64 (% a b)]
+    (if (and (not (= r 0)) (< r 0))
+      (- q 1)
+      q)))
+
 ;; Check if a point is inside a solid tile
 (define (point-solid? [level : (Array i64)] [cols : i64] [rows : i64] [x : f64] [y : f64]) : bool
   (tile-solid? level cols rows
-    (/ (cast x : i64) TILE-SIZE)
-    (/ (cast y : i64) TILE-SIZE)))
+    (floor-div (cast x : i64) TILE-SIZE)
+    (floor-div (cast y : i64) TILE-SIZE)))
 
 ;; Check if a player position collides with any solid tiles
 (define (player-collides? [level : (Array i64)] [cols : i64] [rows : i64] [px : f64] [py : f64]) : bool
@@ -79,9 +89,9 @@
         ;; Moving down: find first solid row below and snap to top of it
         (let
           [bottom-y : f64 (+ py PLAYER-HH)]
-          [current-row : i64 (/ (cast bottom-y : i64) TILE-SIZE)]
-          [left-col : i64 (/ (cast (- px PLAYER-HW) : i64) TILE-SIZE)]
-          [right-col : i64 (/ (cast (+ px PLAYER-HW) : i64) TILE-SIZE)]
+          [current-row : i64 (floor-div (cast bottom-y : i64) TILE-SIZE)]
+          [left-col : i64 (floor-div (cast (- px PLAYER-HW) : i64) TILE-SIZE)]
+          [right-col : i64 (floor-div (cast (+ px PLAYER-HW) : i64) TILE-SIZE)]
           [snap-row-left : i64 (find-first-solid-below level cols rows left-col current-row)]
           [snap-row-right : i64 (find-first-solid-below level cols rows right-col current-row)]
           [snap-row : i64 (if (< snap-row-left snap-row-right) snap-row-left snap-row-right)]
@@ -91,7 +101,7 @@
         ;; Moving up: snap to bottom of tile above
         (let
           [top-y : f64 (- new-py PLAYER-HH)]
-          [top-row : i64 (/ (cast top-y : i64) TILE-SIZE)]
+          [top-row : i64 (floor-div (cast top-y : i64) TILE-SIZE)]
           [snap-row : i64 (if (< top-row 0) -1 top-row)]
           (VerticalResult
             (+ (+ (cast (* (+ snap-row 1) TILE-SIZE) : f64) PLAYER-HH) 0.1)
