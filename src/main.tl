@@ -3,6 +3,8 @@
 (import "assets.tl")
 (import "physics.tl")
 (import "player.tl")
+(import "camera.tl")
+(import "world.tl")
 
 (extern (InitWindow [width : i32] [height : i32] [title : (Ptr u8)]) : unit)
 (extern (SetTargetFPS [fps : i32]) : unit)
@@ -27,47 +29,48 @@
 (define KEY_SPACE : i32
   (cast 32 : i32))
 
-(define TILE : i64
-  (cast 32 : i64))
-(define COLS : i64
-  (cast 20 : i64))
-(define ROWS : i64
-  (cast 15 : i64))
+(define KEY_R : i32
+  (cast 82 : i32))
 
-(define WIDTH : i32
-  (cast (* COLS TILE) : i32))
-(define HEIGHT : i32
-  (cast (* ROWS TILE) : i32))
 (define TILE-F : f32
-  (cast TILE : f32))
-
-(define level : (Array i64)
-  (make-array i64 300))
-
-(define wfc-grid : (Array i64)
-  (make-array i64 300))
+  (cast TILE-SIZE : f32))
 
 (define (draw) : unit
   (begin
     (BeginDrawing)
     (ClearBackground
       (Color (cast 135 : u8) (cast 206 : u8) (cast 235 : u8) (cast 255 : u8)))
+    ;; Draw visible tiles only (cull off-screen)
     (let
-      [row : i64 0]
-      (while (< row ROWS)
-        (begin
-          (let
-            [col : i64 0]
-            (while (< col COLS)
-              (begin
-                (draw-tile
-                  (cast (* col TILE) : f32)
-                  (cast (* row TILE) : f32)
-                  TILE-F
-                  (array-ref level (cell-idx row col)))
-                (set! col (+ col 1)))))
-          (set! row (+ row 1)))))
+      [start-col : i64 (floor-div (cast camera-x : i64) TILE-SIZE)]
+      [end-col : i64 (+ (+ start-col (floor-div (cast SCREEN-W : i64) TILE-SIZE)) 2)]
+      [start-row : i64 (floor-div (cast camera-y : i64) TILE-SIZE)]
+      [end-row : i64 (+ (+ start-row (floor-div (cast SCREEN-H : i64) TILE-SIZE)) 2)]
+      (begin
+        (when (< start-col 0) (set! start-col 0))
+        (when (> end-col LEVEL-COLS) (set! end-col LEVEL-COLS))
+        (when (< start-row 0) (set! start-row 0))
+        (when (> end-row LEVEL-ROWS) (set! end-row LEVEL-ROWS))
+        (let
+          [row : i64 start-row]
+          (while (< row end-row)
+            (begin
+              (let
+                [col : i64 start-col]
+                (while (< col end-col)
+                  (begin
+                    (draw-tile
+                      (cast (* col TILE-SIZE) : f64)
+                      (cast (* row TILE-SIZE) : f64)
+                      TILE-F
+                      (array-ref level (level-idx row col)))
+                    (set! col (+ col 1)))))
+              (set! row (+ row 1)))))))
+    ;; Draw goal flag
+    (draw-goal GOAL-X GOAL-Y TILE-F)
+    ;; Draw player
     (draw-player px py TILE-F)
+    ;; HUD
     (DrawText
       (ffi-cstr "tl-platformer")
       (cast 12 : i32)
@@ -80,40 +83,61 @@
   (begin
     ;; Generate level using WFC
     (let
-      [wfc-success : bool (wfc-generate wfc-grid)]
+      [wfc-success : bool (wfc-generate wfc-grid LEVEL-COLS LEVEL-ROWS)]
       (begin
         (if wfc-success
-          (wfc-to-level wfc-grid level)
+          (wfc-to-level wfc-grid level LEVEL-COLS LEVEL-ROWS)
           (begin
             ;; Fallback: clear level and create simple ground
             (let
               [i : i64 0]
-              (while (< i (cast 300 : i64))
+              (while (< i LEVEL-SIZE)
                 (begin
                   (array-set! level i 0)
                   (set! i (+ i 1)))))
             (let
               [c : i64 0]
-              (while (< c COLS)
+              (while (< c LEVEL-COLS)
                 (begin
-                  (array-set! level (+ (* (cast 14 : i64) COLS) c) 1)
-                  (set! c (+ c 1)))))
-            (array-set! level (+ (* (cast 11 : i64) COLS) 5) 1)
-            (array-set! level (+ (* (cast 11 : i64) COLS) 6) 1)
-            (array-set! level (+ (* (cast 9 : i64) COLS) 10) 1)))))
-    (InitWindow WIDTH HEIGHT (ffi-cstr "tl-platformer"))
+                  (array-set! level (level-idx (- LEVEL-ROWS 1) c) 1)
+                  (set! c (+ c 1)))))))))
+    ;; Initialize camera centered on player start
+    (camera-init START-X START-Y SCREEN-W-F SCREEN-H-F)
+    (InitWindow
+      (cast SCREEN-W : i32)
+      (cast SCREEN-H : i32)
+      (ffi-cstr "tl-platformer"))
     (SetTargetFPS (cast 60 : i32))
     (load-assets)
     (while (not (WindowShouldClose))
       (begin
-        (player-update
-          (cast (GetFrameTime) : f64)
-          (IsKeyDown KEY_LEFT)
-          (IsKeyDown KEY_RIGHT)
-          (IsKeyDown KEY_SPACE)
-          level
-          COLS
-          ROWS)
+        (let
+          [dt : f64 (cast (GetFrameTime) : f64)]
+          (begin
+            (player-update
+              dt
+              (IsKeyDown KEY_LEFT)
+              (IsKeyDown KEY_RIGHT)
+              (IsKeyDown KEY_SPACE)
+              level
+              LEVEL-COLS
+              LEVEL-ROWS)
+            (update-player-anim dt vx vy on-ground)
+            (camera-update
+              dt
+              px
+              py
+              vx
+              SCREEN-W-F
+              SCREEN-H-F
+              WORLD-W
+              WORLD-H)
+            ;; Check for goal
+            (when (reached-goal? px py)
+              (player-reset))
+            ;; Reset on R key
+            (when (IsKeyDown KEY_R)
+              (player-reset))))
         (draw)))
     (unload-assets)
     (CloseWindow)

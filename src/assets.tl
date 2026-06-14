@@ -1,4 +1,5 @@
 (import "stdlib/ffi.tl")
+(import "camera.tl")
 
 ;; Asset system for tl-platformer
 ;; Loads textures and manages animations.
@@ -141,6 +142,12 @@
 (define COLOR-PLAYER : Color
   (Color (cast 220 : u8) (cast 40 : u8) (cast 40 : u8) (cast 255 : u8)))
 
+(define COLOR-FLAG : Color
+  (Color (cast 50 : u8) (cast 200 : u8) (cast 50 : u8) (cast 255 : u8)))
+
+(define COLOR-POLE : Color
+  (Color (cast 200 : u8) (cast 200 : u8) (cast 200 : u8) (cast 255 : u8)))
+
 ;; Check if a texture is loaded (id > 0)
 (define (texture-loaded? [tex : Texture2D]) : bool
   (> (struct-get tex id) (cast 0 : u32)))
@@ -200,37 +207,42 @@
 
 (extern (DrawRectangleRec [rec : Rectangle] [color : Color]) : unit)
 
-;; Draw a tile at screen position (x, y) with given size
-(define (draw-tile [x : f32] [y : f32] [tile-size : f32] [tile-type : i64]) : unit
-  (cond
-    ;; Empty tile - draw nothing (sky is background)
-    (= tile-type 0)
-    unit
-    ;; Solid ground
-    (= tile-type 1)
-    (if (texture-loaded? tile-ground)
-      (DrawTexture
-        tile-ground
-        (cast x : i32)
-        (cast y : i32)
-        (Color (cast 255 : u8) (cast 255 : u8) (cast 255 : u8) (cast 255 : u8)))
-      (DrawRectangleRec (Rectangle x y tile-size tile-size) COLOR-GROUND))
-    ;; Platform
-    (= tile-type 2)
-    (if (texture-loaded? tile-platform)
-      (DrawTexture
-        tile-platform
-        (cast x : i32)
-        (cast y : i32)
-        (Color (cast 255 : u8) (cast 255 : u8) (cast 255 : u8) (cast 255 : u8)))
-      (DrawRectangleRec (Rectangle x y tile-size tile-size) COLOR-PLATFORM))
-    unit))
+;; Draw a tile at world position (x, y) with given size
+;; Camera offset is applied to transform to screen coordinates
+(define (draw-tile [wx : f64] [wy : f64] [tile-size : f32] [tile-type : i64]) : unit
+  (let
+    [sx : f32 (world-to-screen-x wx)]
+    [sy : f32 (world-to-screen-y wy)]
+    (cond
+      ;; Empty tile - draw nothing (sky is background)
+      (= tile-type 0)
+      unit
+      ;; Solid ground
+      (= tile-type 1)
+      (if (texture-loaded? tile-ground)
+        (DrawTexture
+          tile-ground
+          (cast sx : i32)
+          (cast sy : i32)
+          (Color (cast 255 : u8) (cast 255 : u8) (cast 255 : u8) (cast 255 : u8)))
+        (DrawRectangleRec (Rectangle sx sy tile-size tile-size) COLOR-GROUND))
+      ;; Platform
+      (= tile-type 2)
+      (if (texture-loaded? tile-platform)
+        (DrawTexture
+          tile-platform
+          (cast sx : i32)
+          (cast sy : i32)
+          (Color (cast 255 : u8) (cast 255 : u8) (cast 255 : u8) (cast 255 : u8)))
+        (DrawRectangleRec (Rectangle sx sy tile-size tile-size) COLOR-PLATFORM))
+      unit)))
 
-;; Draw the player with animation at screen position (x, y)
+;; Draw the player with animation at world position (px, py)
+;; Camera offset is applied to transform to screen coordinates
 (define (draw-player [px : f64] [py : f64] [player-size : f32]) : unit
   (let
-    [dest-x : f32 (cast px : f32)]
-    [dest-y : f32 (cast py : f32)]
+    [dest-x : f32 (world-to-screen-x px)]
+    [dest-y : f32 (world-to-screen-y py)]
     [dest-w : f32
       (if player-facing-right
         player-size
@@ -247,3 +259,30 @@
       (DrawRectangleRec
         (Rectangle dest-x dest-y (- player-size 4.0) (- player-size 4.0))
         COLOR-PLAYER))))
+
+;; Draw a flag pole at world position (gx, gy)
+(define (draw-goal [gx : f64] [gy : f64] [tile-size : f32]) : unit
+  (let
+    [sx : f32 (world-to-screen-x gx)]
+    [sy : f32 (world-to-screen-y gy)]
+    [ts : f32 tile-size]
+    [pole-w : f32 4.0]
+    [flag-w : f32 (- ts 6.0)]
+    [flag-h : f32 (* ts 0.6)]
+    (begin
+      ;; Draw pole
+      (DrawRectangleRec
+        (Rectangle
+          (+ sx (* (- ts pole-w) 0.5))
+          sy
+          pole-w
+          ts)
+        COLOR-POLE)
+      ;; Draw flag
+      (DrawRectangleRec
+        (Rectangle
+          (+ sx 3.0)
+          (+ sy 3.0)
+          flag-w
+          flag-h)
+        COLOR-FLAG))))

@@ -1,13 +1,8 @@
 (import "stdlib/ffi.tl")
 (import "physics.tl")
+(import "world.tl")
 
 ;; Player constants
-(define PLAYER-START-X : f64
-  64.0)
-
-(define PLAYER-START-Y : f64
-  64.0)
-
 (define GRAVITY : f64
   1400.0)
 
@@ -29,10 +24,10 @@
 
 ;; Player state (globals for game loop)
 (define px : f64
-  PLAYER-START-X)
+  START-X)
 
 (define py : f64
-  PLAYER-START-Y)
+  START-Y)
 
 (define vx : f64
   0.0)
@@ -55,8 +50,8 @@
 ;; Reset player to start position
 (define (player-reset) : unit
   (begin
-    (set! px PLAYER-START-X)
-    (set! py PLAYER-START-Y)
+    (set! px START-X)
+    (set! py START-Y)
     (set! vx 0.0)
     (set! vy 0.0)
     (set! on-ground false)
