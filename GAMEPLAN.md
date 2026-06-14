@@ -145,7 +145,7 @@ Tests import `player.tl`, `physics.tl`, `world.tl` directly — never `assets.tl
 
 ## TypeLisp as a Co-Development Target
 
-We are building the game *and* stress-testing the language. Every feature we add is a chance to find rough edges.
+We are building the game *and* stress-testing the language. Every feature we add is a chance to find rough edges. **Note: filing issues to the typelisp repo requires Jonathan's approval first.**
 
 ### When to File an Issue
 
@@ -158,13 +158,15 @@ We are building the game *and* stress-testing the language. Every feature we add
 
 ### Issue Filing Process
 
-1. Create a minimal reproduction in `/tmp/` or a new file
-2. Verify it against the latest stage0 (`scripts/fetch-stage0.sh`)
-3. Check if it exists in the tracker already
-4. File with: title, reproduction steps, expected vs actual behavior, `typelisp --version` output
+1. **Get approval from Jonathan** — since we control the language, issue filing requires explicit approval
+2. Create a minimal reproduction in `/tmp/` or a new file
+3. Verify it against the latest stage0 (`scripts/fetch-stage0.sh`)
+4. Check if it exists in the tracker already
+5. File with: title, reproduction steps, expected vs actual behavior, `typelisp --version` output
 
 ### Issues Filed So Far
 
+*Filed with Jonathan's explicit approval:*
 - #2973 — `define` with explicit scalar type should accept literals without `cast`
 - #2974 — Duplicate extern diagnostic should list both source locations
 - #2975 — Formatter inserts excessive blank lines between declarations
