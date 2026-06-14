@@ -260,6 +260,15 @@
         (Rectangle dest-x dest-y (- player-size 4.0) (- player-size 4.0))
         COLOR-PLAYER))))
 
+;; Draw an enemy at world position (ex, ey)
+(define (draw-enemy [ex : f64] [ey : f64] [enemy-size : f32]) : unit
+  (let
+    [dest-x : f32 (world-to-screen-x ex)]
+    [dest-y : f32 (world-to-screen-y ey)]
+    (DrawRectangleRec
+      (Rectangle dest-x dest-y (- enemy-size 4.0) (- enemy-size 4.0))
+      (Color (cast 140 : u8) (cast 40 : u8) (cast 220 : u8) (cast 255 : u8)))))
+
 ;; Draw a flag pole at world position (gx, gy)
 (define (draw-goal [gx : f64] [gy : f64] [tile-size : f32]) : unit
   (let

@@ -48,11 +48,11 @@ Side-scrolling platformer with:
 ## Phase 2: Gameplay Loop
 
 ### Enemies
-- [ ] Basic enemy types with simple patrol AI
+- [x] Basic enemy types with simple patrol AI
   - Ground-pounder: walks back and forth, falls off edges
   - Charger: walks, turns at edges
-- [ ] Player-enemy collision (stomp to kill, side hit = damage)
-- [ ] Enemy spawn system tied to WFC generation
+- [x] Player-enemy collision (stomp to kill, side hit = damage)
+- [x] Enemy spawn system tied to WFC generation
 
 ### Items & Collectibles
 - [ ] Coins (collect for score)
