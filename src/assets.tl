@@ -3,19 +3,48 @@
 ;; Asset system for tl-platformer
 ;; Loads textures and manages animations.
 ;; Uses colored rectangles as fallback until image files exist.
+(defstruct Color
+  (r u8)
+  (g u8)
+  (b u8)
+  (a u8))
 
-(defstruct Color (r u8) (g u8) (b u8) (a u8))
-(defstruct Rectangle (x f32) (y f32) (width f32) (height f32))
+(defstruct Rectangle
+  (x f32)
+  (y f32)
+  (width f32)
+  (height f32))
 
 ;; Texture loading from Raylib
 (extern (LoadTexture [fileName : (Ptr u8)]) : Texture2D)
+
 (extern (UnloadTexture [texture : Texture2D]) : unit)
-(extern (DrawTexture [texture : Texture2D] [posX : i32] [posY : i32] [tint : Color]) : unit)
-(extern (DrawTextureRec [texture : Texture2D] [source : Rectangle] [position : Vector2] [tint : Color]) : unit)
-(extern (DrawTexturePro [texture : Texture2D] [source : Rectangle] [dest : Rectangle] [origin : Vector2] [rotation : f32] [tint : Color]) : unit)
+
+(extern (DrawTexture
+  [texture : Texture2D]
+  [posX : i32]
+  [posY : i32]
+  [tint : Color]) : unit)
+
+(extern (DrawTextureRec
+  [texture : Texture2D]
+  [source : Rectangle]
+  [position : Vector2]
+  [tint : Color]) : unit)
+
+(extern (DrawTexturePro
+  [texture : Texture2D]
+  [source : Rectangle]
+  [dest : Rectangle]
+  [origin : Vector2]
+  [rotation : f32]
+  [tint : Color]) : unit)
+
 (extern (GetTime) : f64)
 
-(defstruct Vector2 (x f32) (y f32))
+(defstruct Vector2
+  (x f32)
+  (y f32))
 
 ;; Raylib Texture2D struct
 (defstruct Texture2D
@@ -26,38 +55,91 @@
   (format i32))
 
 ;; Tile textures
-(define tile-ground : Texture2D (Texture2D (cast 0 : u32) (cast 0 : i32) (cast 0 : i32) (cast 0 : i32) (cast 0 : i32)))
-(define tile-platform : Texture2D (Texture2D (cast 0 : u32) (cast 0 : i32) (cast 0 : i32) (cast 0 : i32) (cast 0 : i32)))
-(define tile-wall : Texture2D (Texture2D (cast 0 : u32) (cast 0 : i32) (cast 0 : i32) (cast 0 : i32) (cast 0 : i32)))
+(define tile-ground : Texture2D
+  (Texture2D
+    (cast 0 : u32)
+    (cast 0 : i32)
+    (cast 0 : i32)
+    (cast 0 : i32)
+    (cast 0 : i32)))
+
+(define tile-platform : Texture2D
+  (Texture2D
+    (cast 0 : u32)
+    (cast 0 : i32)
+    (cast 0 : i32)
+    (cast 0 : i32)
+    (cast 0 : i32)))
+
+(define tile-wall : Texture2D
+  (Texture2D
+    (cast 0 : u32)
+    (cast 0 : i32)
+    (cast 0 : i32)
+    (cast 0 : i32)
+    (cast 0 : i32)))
 
 ;; Player sprite sheet
-(define player-sprite : Texture2D (Texture2D (cast 0 : u32) (cast 0 : i32) (cast 0 : i32) (cast 0 : i32) (cast 0 : i32)))
+(define player-sprite : Texture2D
+  (Texture2D
+    (cast 0 : u32)
+    (cast 0 : i32)
+    (cast 0 : i32)
+    (cast 0 : i32)
+    (cast 0 : i32)))
 
 ;; Animation frame dimensions (in the sprite sheet)
-(define PLAYER-FRAME-W : i32 (cast 32 : i32))
-(define PLAYER-FRAME-H : i32 (cast 32 : i32))
-(define PLAYER-FRAMES-PER-ROW : i64 (cast 4 : i64))
+(define PLAYER-FRAME-W : i32
+  (cast 32 : i32))
+
+(define PLAYER-FRAME-H : i32
+  (cast 32 : i32))
+
+(define PLAYER-FRAMES-PER-ROW : i64
+  (cast 4 : i64))
 
 ;; Animation states
-(define ANIM-IDLE : i64 (cast 0 : i64))
-(define ANIM-RUN : i64 (cast 1 : i64))
-(define ANIM-JUMP : i64 (cast 2 : i64))
-(define ANIM-FALL : i64 (cast 3 : i64))
+(define ANIM-IDLE : i64
+  (cast 0 : i64))
+
+(define ANIM-RUN : i64
+  (cast 1 : i64))
+
+(define ANIM-JUMP : i64
+  (cast 2 : i64))
+
+(define ANIM-FALL : i64
+  (cast 3 : i64))
 
 ;; Current animation state
-(define player-anim-state : i64 ANIM-IDLE)
-(define player-anim-timer : f64 0.0)
-(define player-anim-frame : i64 (cast 0 : i64))
-(define player-facing-right : bool true)
+(define player-anim-state : i64
+  ANIM-IDLE)
+
+(define player-anim-timer : f64
+  0.0)
+
+(define player-anim-frame : i64
+  (cast 0 : i64))
+
+(define player-facing-right : bool
+  true)
 
 ;; Animation timing
-(define ANIM-FPS : f64 8.0)
+(define ANIM-FPS : f64
+  8.0)
 
 ;; Fallback colors when textures aren't loaded
-(define COLOR-GROUND : Color (Color (cast 90 : u8) (cast 60 : u8) (cast 30 : u8) (cast 255 : u8)))
-(define COLOR-PLATFORM : Color (Color (cast 139 : u8) (cast 90 : u8) (cast 43 : u8) (cast 255 : u8)))
-(define COLOR-WALL : Color (Color (cast 100 : u8) (cast 100 : u8) (cast 100 : u8) (cast 255 : u8)))
-(define COLOR-PLAYER : Color (Color (cast 220 : u8) (cast 40 : u8) (cast 40 : u8) (cast 255 : u8)))
+(define COLOR-GROUND : Color
+  (Color (cast 90 : u8) (cast 60 : u8) (cast 30 : u8) (cast 255 : u8)))
+
+(define COLOR-PLATFORM : Color
+  (Color (cast 139 : u8) (cast 90 : u8) (cast 43 : u8) (cast 255 : u8)))
+
+(define COLOR-WALL : Color
+  (Color (cast 100 : u8) (cast 100 : u8) (cast 100 : u8) (cast 255 : u8)))
+
+(define COLOR-PLAYER : Color
+  (Color (cast 220 : u8) (cast 40 : u8) (cast 40 : u8) (cast 255 : u8)))
 
 ;; Check if a texture is loaded (id > 0)
 (define (texture-loaded? [tex : Texture2D]) : bool
@@ -69,7 +151,9 @@
     (set! tile-ground (LoadTexture (ffi-cstr "assets/tiles/ground.png")))
     (set! tile-platform (LoadTexture (ffi-cstr "assets/tiles/platform.png")))
     (set! tile-wall (LoadTexture (ffi-cstr "assets/tiles/wall.png")))
-    (set! player-sprite (LoadTexture (ffi-cstr "assets/player/spritesheet.png")))))
+    (set!
+      player-sprite
+      (LoadTexture (ffi-cstr "assets/player/spritesheet.png")))))
 
 ;; Unload all game assets
 (define (unload-assets) : unit
@@ -101,17 +185,18 @@
       (if (not (= vx 0.0))
         (set! player-anim-state ANIM-RUN)
         (set! player-anim-state ANIM-IDLE)))
-    
     ;; Update facing direction
     (when (> vx 0.0) (set! player-facing-right true))
     (when (< vx 0.0) (set! player-facing-right false))
-    
     ;; Update animation timer and frame
     (set! player-anim-timer (+ player-anim-timer dt))
-    (when (>= player-anim-timer (/ 1.0 ANIM-FPS))
+    (when
+      (>= player-anim-timer (/ 1.0 ANIM-FPS))
       (begin
         (set! player-anim-timer (- player-anim-timer (/ 1.0 ANIM-FPS)))
-        (set! player-anim-frame (% (+ player-anim-frame (cast 1 : i64)) PLAYER-FRAMES-PER-ROW))))))
+        (set!
+          player-anim-frame
+          (% (+ player-anim-frame (cast 1 : i64)) PLAYER-FRAMES-PER-ROW))))))
 
 (extern (DrawRectangleRec [rec : Rectangle] [color : Color]) : unit)
 
@@ -119,20 +204,26 @@
 (define (draw-tile [x : f32] [y : f32] [tile-size : f32] [tile-type : i64]) : unit
   (cond
     ;; Empty tile - draw nothing (sky is background)
-    (= tile-type 0) unit
-    
+    (= tile-type 0)
+    unit
     ;; Solid ground
     (= tile-type 1)
     (if (texture-loaded? tile-ground)
-      (DrawTexture tile-ground (cast x : i32) (cast y : i32) (Color (cast 255 : u8) (cast 255 : u8) (cast 255 : u8) (cast 255 : u8)))
+      (DrawTexture
+        tile-ground
+        (cast x : i32)
+        (cast y : i32)
+        (Color (cast 255 : u8) (cast 255 : u8) (cast 255 : u8) (cast 255 : u8)))
       (DrawRectangleRec (Rectangle x y tile-size tile-size) COLOR-GROUND))
-    
     ;; Platform
     (= tile-type 2)
     (if (texture-loaded? tile-platform)
-      (DrawTexture tile-platform (cast x : i32) (cast y : i32) (Color (cast 255 : u8) (cast 255 : u8) (cast 255 : u8) (cast 255 : u8)))
+      (DrawTexture
+        tile-platform
+        (cast x : i32)
+        (cast y : i32)
+        (Color (cast 255 : u8) (cast 255 : u8) (cast 255 : u8) (cast 255 : u8)))
       (DrawRectangleRec (Rectangle x y tile-size tile-size) COLOR-PLATFORM))
-    
     unit))
 
 ;; Draw the player with animation at screen position (x, y)
@@ -140,7 +231,10 @@
   (let
     [dest-x : f32 (cast px : f32)]
     [dest-y : f32 (cast py : f32)]
-    [dest-w : f32 (if player-facing-right player-size (- 0.0 player-size))]
+    [dest-w : f32
+      (if player-facing-right
+        player-size
+        (- 0.0 player-size))]
     [dest-h : f32 player-size]
     (if (texture-loaded? player-sprite)
       (DrawTexturePro
