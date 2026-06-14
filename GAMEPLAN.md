@@ -25,7 +25,7 @@ Side-scrolling platformer with:
 - [x] `tests/test_player.tl` — 11 tests (movement, jump, coyote, buffer, variable)
 - [x] `tests/test_physics.tl` — 11 tests (collision, wall, ground, ceiling, floor-div)
 
-## Phase 1: Solid Foundation (Current — mostly done)
+## Phase 1: Solid Foundation (Complete)
 
 ### Physics
 - [x] Horizontal collision (walls, platforms from sides)
@@ -36,13 +36,14 @@ Side-scrolling platformer with:
 - [x] Variable jump height (hold space = higher)
 
 ### Camera
-- [ ] Smooth follow camera with lookahead
-- [ ] Camera bounds (don't show below level)
+- [x] Smooth follow camera with lookahead
+- [x] Camera bounds (don't show below level)
 
 ### Level Structure
-- [ ] Fixed-width levels with start and goal (flag pole)
-- [ ] WFC generates terrain; hand-placed start/goal zones
-- [ ] Scrolling instead of single screen
+- [x] Fixed-width levels with start and goal (flag pole)
+- [x] WFC generates terrain; hand-placed start/goal zones
+- [x] Scrolling instead of single screen
+- [x] Tile culling (only draw visible tiles)
 
 ## Phase 2: Gameplay Loop
 
@@ -216,9 +217,11 @@ tests/
 3. ~~Add `physics.tl`~~ ✅ Done
 4. ~~Add `tests/test_player.tl`~~ ✅ Done
 5. ~~Add `tests/test_physics.tl`~~ ✅ Done
-6. **Add `camera.tl`** — smooth follow with lookahead, bounds
-7. **Add `world.tl`** — scrolling level, start/goal zones, flag pole
-8. **Flag any language snags** as issues during the above
+6. ~~Add `camera.tl`~~ ✅ Done
+7. ~~Add `world.tl`~~ ✅ Done
+8. ~~Add `tests/test_camera.tl` and `tests/test_world.tl`~~ ✅ Done
+9. **Phase 2: Gameplay loop** — enemies, coins, lives/score
+10. **Flag any language snags** as issues during the above
 
 ## Notes
 
