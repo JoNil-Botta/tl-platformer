@@ -55,14 +55,14 @@ Side-scrolling platformer with:
 - [x] Enemy spawn system tied to WFC generation
 
 ### Items & Collectibles
-- [ ] Coins (collect for score)
+- [x] Coins (collect for score)
 - [ ] Power-up blocks (question blocks that spawn items)
 - [ ] Mushroom power-up (grow big, take extra hit)
 - [ ] 1-UP mushroom (extra life)
 
 ### Game State
+- [x] Score tracking (coins, enemy kills, time bonus)
 - [ ] Lives system (3 lives default)
-- [ ] Score tracking (coins, enemy kills, time bonus)
 - [ ] Timer (countdown, bonus for finishing fast)
 - [ ] Death and respawn (fall in pit = death)
 - [ ] Game over screen

@@ -6,6 +6,9 @@
 (import "camera.tl")
 (import "world.tl")
 
+(import "items.tl")
+(import "enemies.tl")
+
 (extern (InitWindow [width : i32] [height : i32] [title : (Ptr u8)]) : unit)
 (extern (SetTargetFPS [fps : i32]) : unit)
 (extern (WindowShouldClose) : bool)
@@ -68,14 +71,40 @@
               (set! row (+ row 1)))))))
     ;; Draw goal flag
     (draw-goal GOAL-X GOAL-Y TILE-F)
+    ;; Draw visible enemies
+    (let
+      [i : i64 0]
+      (while (< i enemy-count)
+        (begin
+          (let
+            [e : Enemy (array-ref enemies i)]
+            (when (struct-get e alive)
+              (draw-enemy (struct-get e x) (struct-get e y) TILE-F)))
+          (set! i (+ i 1)))))
+    ;; Draw visible coins
+    (let
+      [i : i64 0]
+      (while (< i coin-count)
+        (begin
+          (let
+            [c : Coin (array-ref coins i)]
+            (when (struct-get c active)
+              (draw-coin (struct-get c x) (struct-get c y))))
+          (set! i (+ i 1)))))
     ;; Draw player
     (draw-player px py TILE-F)
-    ;; HUD
+    ;; HUD: title + score
     (DrawText
       (ffi-cstr "tl-platformer")
       (cast 12 : i32)
       (cast 12 : i32)
       (cast 20 : i32)
+      (Color (cast 30 : u8) (cast 30 : u8) (cast 30 : u8) (cast 255 : u8)))
+    (DrawText
+      (ffi-cstr "SCORE: ")
+      (cast 12 : i32)
+      (cast 36 : i32)
+      (cast 16 : i32)
       (Color (cast 30 : u8) (cast 30 : u8) (cast 30 : u8) (cast 255 : u8)))
     (EndDrawing)))
 
@@ -101,6 +130,10 @@
                 (begin
                   (array-set! level (level-idx (- LEVEL-ROWS 1) c) 1)
                   (set! c (+ c 1)))))))))
+    ;; Spawn enemies and coins based on generated level
+    (enemies-spawn-in-level level LEVEL-COLS LEVEL-ROWS)
+    (coins-spawn-in-level level LEVEL-COLS LEVEL-ROWS)
+    (score-reset)
     ;; Initialize camera centered on player start
     (camera-init START-X START-Y SCREEN-W-F SCREEN-H-F)
     (InitWindow
@@ -132,6 +165,19 @@
               SCREEN-H-F
               WORLD-W
               WORLD-H)
+            (enemies-update dt level LEVEL-COLS LEVEL-ROWS)
+            ;; Check coin collection
+            (coins-collect px py)
+            ;; Check player-enemy collision
+            (let
+              [collision : i64 (player-enemy-collide px py vy)]
+              (begin
+                (when (= collision 1)
+                  ;; Stomp: bounce player up
+                  (set! vy (* JUMP-VEL 0.5)))
+                (when (= collision 2)
+                  ;; Side hit: reset player for now (damage/death TBD)
+                  (player-reset))))
             ;; Check for goal
             (when (reached-goal? px py)
               (player-reset))
