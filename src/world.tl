@@ -59,6 +59,15 @@
 (define TILE-EMPTY-BLOCK : i64
   (cast 4 : i64))
 
+(define TILE-BRICK : i64
+  (cast 5 : i64))
+
+(define TILE-PIPE-TOP : i64
+  (cast 6 : i64))
+
+(define TILE-PIPE-BODY : i64
+  (cast 7 : i64))
+
 ;; Goal zone: flag pole position (right side of level)
 (define GOAL-X : f64
   (- WORLD-W (* TILE-SIZE-F 3.0)))

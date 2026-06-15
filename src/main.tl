@@ -162,9 +162,9 @@
 
 (define (main) : i64
   (begin
-    ;; Generate level using WFC
+    ;; Generate level using WFC with fixed seed (vary per level later)
     (let
-      [wfc-success : bool (wfc-generate wfc-grid LEVEL-COLS LEVEL-ROWS)]
+      [wfc-success : bool (wfc-generate wfc-grid LEVEL-COLS LEVEL-ROWS (cast 42 : i64))]
       (begin
         (if wfc-success
           (wfc-to-level wfc-grid level LEVEL-COLS LEVEL-ROWS)

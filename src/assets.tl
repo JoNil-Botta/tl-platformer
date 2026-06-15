@@ -164,6 +164,18 @@
 (define COLOR-EMPTY-BLOCK : Color
   (Color (cast 139 : u8) (cast 90 : u8) (cast 43 : u8) (cast 255 : u8)))
 
+;; Brick block color
+(define COLOR-BRICK : Color
+  (Color (cast 180 : u8) (cast 70 : u8) (cast 50 : u8) (cast 255 : u8)))
+
+;; Pipe top color
+(define COLOR-PIPE-TOP : Color
+  (Color (cast 50 : u8) (cast 160 : u8) (cast 50 : u8) (cast 255 : u8)))
+
+;; Pipe body color
+(define COLOR-PIPE-BODY : Color
+  (Color (cast 40 : u8) (cast 140 : u8) (cast 40 : u8) (cast 255 : u8)))
+
 ;; Mushroom color
 (define COLOR-MUSHROOM : Color
   (Color (cast 220 : u8) (cast 60 : u8) (cast 60 : u8) (cast 255 : u8)))
@@ -265,6 +277,15 @@
       ;; Empty/used block
       (= tile-type 4)
       (DrawRectangleRec (Rectangle sx sy tile-size tile-size) COLOR-EMPTY-BLOCK)
+      ;; Brick block
+      (= tile-type 5)
+      (DrawRectangleRec (Rectangle sx sy tile-size tile-size) COLOR-BRICK)
+      ;; Pipe top
+      (= tile-type 6)
+      (DrawRectangleRec (Rectangle sx sy tile-size tile-size) COLOR-PIPE-TOP)
+      ;; Pipe body
+      (= tile-type 7)
+      (DrawRectangleRec (Rectangle sx sy tile-size tile-size) COLOR-PIPE-BODY)
       unit)))
 
 ;; Draw the player with animation at world position (px, py)

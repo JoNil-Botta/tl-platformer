@@ -67,12 +67,12 @@ Side-scrolling platformer with:
 - [x] Death and respawn (fall in pit = death, enemy side-hit = death)
 - [x] Game over screen
 
-## Phase 3: Procedural Worlds
+## Phase 3: Procedural Worlds (In Progress)
 
 ### WFC Expansion
-- [ ] Multiple tile types: ground, brick, question block, pipe, empty
-- [ ] Adjacency rules for pipe placement (vertical stacks)
-- [ ] Question blocks only placed where reachable
+- [x] Multiple tile types: ground, brick, question block, pipe, empty
+- [x] Adjacency rules for pipe placement (vertical stacks)
+- [x] Question blocks only placed where reachable
 - [ ] Secret areas (hidden coin caches)
 
 ### Biomes
