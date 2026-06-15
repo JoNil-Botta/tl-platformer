@@ -62,9 +62,9 @@ Side-scrolling platformer with:
 
 ### Game State
 - [x] Score tracking (coins, enemy kills, time bonus)
-- [ ] Lives system (3 lives default)
+- [x] Lives system (3 lives default)
 - [ ] Timer (countdown, bonus for finishing fast)
-- [ ] Death and respawn (fall in pit = death)
+- [x] Death and respawn (fall in pit = death, enemy side-hit = death)
 - [ ] Game over screen
 
 ## Phase 3: Procedural Worlds

@@ -6,6 +6,10 @@
 (import "camera.tl")
 (import "world.tl")
 
+(import "game_state.tl")
+(import "game_state.tl")
+(import "game_state.tl")
+(import "game_state.tl")
 (import "items.tl")
 (import "enemies.tl")
 
@@ -93,7 +97,7 @@
           (set! i (+ i 1)))))
     ;; Draw player
     (draw-player px py TILE-F)
-    ;; HUD: title + score
+    ;; HUD: title + score + lives
     (DrawText
       (ffi-cstr "tl-platformer")
       (cast 12 : i32)
@@ -106,6 +110,27 @@
       (cast 36 : i32)
       (cast 16 : i32)
       (Color (cast 30 : u8) (cast 30 : u8) (cast 30 : u8) (cast 255 : u8)))
+    (DrawText
+      (ffi-cstr "LIVES: ")
+      (cast 12 : i32)
+      (cast 54 : i32)
+      (cast 16 : i32)
+      (Color (cast 30 : u8) (cast 30 : u8) (cast 30 : u8) (cast 255 : u8)))
+    ;; Game over overlay
+    (when (is-game-over?)
+      (begin
+        (DrawText
+          (ffi-cstr "GAME OVER")
+          (cast 200 : i32)
+          (cast 200 : i32)
+          (cast 40 : i32)
+          (Color (cast 200 : u8) (cast 50 : u8) (cast 50 : u8) (cast 255 : u8)))
+        (DrawText
+          (ffi-cstr "Press R to restart")
+          (cast 220 : i32)
+          (cast 260 : i32)
+          (cast 20 : i32)
+          (Color (cast 30 : u8) (cast 30 : u8) (cast 30 : u8) (cast 255 : u8)))))
     (EndDrawing)))
 
 (define (main) : i64
@@ -134,6 +159,7 @@
     (enemies-spawn-in-level level LEVEL-COLS LEVEL-ROWS)
     (coins-spawn-in-level level LEVEL-COLS LEVEL-ROWS)
     (score-reset)
+    (game-reset)
     ;; Initialize camera centered on player start
     (camera-init START-X START-Y SCREEN-W-F SCREEN-H-F)
     (InitWindow
@@ -147,7 +173,9 @@
         (let
           [dt : f64 (cast (GetFrameTime) : f64)]
           (begin
-            (player-update
+            (when (is-playing?)
+              (begin
+                (player-update
               dt
               (IsKeyDown KEY_LEFT)
               (IsKeyDown KEY_RIGHT)
@@ -176,14 +204,23 @@
                   ;; Stomp: bounce player up
                   (set! vy (* JUMP-VEL 0.5)))
                 (when (= collision 2)
-                  ;; Side hit: reset player for now (damage/death TBD)
-                  (player-reset))))
+                  ;; Side hit: player dies
+                  (begin
+                    (player-die)
+                    unit))))
+            ;; Check for pit death
+            (when (> py WORLD-H)
+              (begin
+                (player-die)
+                unit))
             ;; Check for goal
             (when (reached-goal? px py)
-              (player-reset))
-            ;; Reset on R key
-            (when (IsKeyDown KEY_R)
               (player-reset))))
+            ;; Reset / restart on R key
+            (when (IsKeyDown KEY_R)
+              (if (is-game-over?)
+                (game-reset)
+                (player-reset)))))
         (draw)))
     (unload-assets)
     (CloseWindow)
