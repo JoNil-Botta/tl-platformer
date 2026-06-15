@@ -97,7 +97,7 @@
           (set! i (+ i 1)))))
     ;; Draw player
     (draw-player px py TILE-F)
-    ;; HUD: title + score + lives
+    ;; HUD: title + score + lives + time
     (DrawText
       (ffi-cstr "tl-platformer")
       (cast 12 : i32)
@@ -114,6 +114,12 @@
       (ffi-cstr "LIVES: ")
       (cast 12 : i32)
       (cast 54 : i32)
+      (cast 16 : i32)
+      (Color (cast 30 : u8) (cast 30 : u8) (cast 30 : u8) (cast 255 : u8)))
+    (DrawText
+      (ffi-cstr "TIME: ")
+      (cast 12 : i32)
+      (cast 72 : i32)
       (cast 16 : i32)
       (Color (cast 30 : u8) (cast 30 : u8) (cast 30 : u8) (cast 255 : u8)))
     ;; Game over overlay
@@ -196,6 +202,13 @@
             (enemies-update dt level LEVEL-COLS LEVEL-ROWS)
             ;; Check coin collection
             (coins-collect px py)
+            ;; Update timer
+            (let
+              [time-out : bool (timer-update dt)]
+              (when time-out
+                (begin
+                  (player-die)
+                  unit)))
             ;; Check player-enemy collision
             (let
               [collision : i64 (player-enemy-collide px py vy)]
@@ -215,7 +228,9 @@
                 unit))
             ;; Check for goal
             (when (reached-goal? px py)
-              (player-reset))))
+              (begin
+                (set! score (+ score (timer-bonus)))
+                (player-reset)))))
             ;; Reset / restart on R key
             (when (IsKeyDown KEY_R)
               (if (is-game-over?)

@@ -63,7 +63,7 @@ Side-scrolling platformer with:
 ### Game State
 - [x] Score tracking (coins, enemy kills, time bonus)
 - [x] Lives system (3 lives default)
-- [ ] Timer (countdown, bonus for finishing fast)
+- [x] Timer (countdown, bonus for finishing fast)
 - [x] Death and respawn (fall in pit = death, enemy side-hit = death)
 - [ ] Game over screen
 
