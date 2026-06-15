@@ -2,6 +2,7 @@
 (import "stdlib/test.tl")
 (import "../src/world.tl")
 (import "../src/wfc.tl")
+(import "../src/items.tl")
 
 ;; Helper: make a small test grid
 (define (make-test-grid [size : i64]) : (Array i64)
@@ -252,3 +253,23 @@
           (assert-true
             found
             "level should contain at least one brick"))))))
+
+;; Test: secret coins spawn in generated levels
+(test
+  test-secret-coins-in-generated-level
+  (let
+    [grid : (Array i64) (make-test-grid (* LEVEL-COLS LEVEL-ROWS))]
+    [lvl : (Array i64) (make-test-grid (* LEVEL-COLS LEVEL-ROWS))]
+    (begin
+      (wfc-generate grid LEVEL-COLS LEVEL-ROWS (cast 42 : i64))
+      (wfc-to-level grid lvl LEVEL-COLS LEVEL-ROWS)
+      (coins-init)
+      (set! coin-count 0)
+      (coins-spawn-in-level lvl LEVEL-COLS LEVEL-ROWS)
+      (let
+        [regular-coins : i64 coin-count]
+        (begin
+          (coins-spawn-secrets lvl LEVEL-COLS LEVEL-ROWS)
+          (assert-true
+            (> coin-count regular-coins)
+            "generated level should have secret coins in addition to regular coins"))))))

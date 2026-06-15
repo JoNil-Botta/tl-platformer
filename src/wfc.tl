@@ -129,7 +129,7 @@
                   ;; If ground found and there is space above, place question block
                   (when (>= ground-row 2)
                     (let
-                      [block-row : i64 (- ground-row 2)]
+                      [block-row : i64 (- ground-row 1)]
                       (when (= (array-ref grid (+ (* block-row cols) c)) TILE-EMPTY)
                         (array-set! grid (+ (* block-row cols) c) TILE-QUESTION)))))))
             (set! c (+ c 1)))))

@@ -377,6 +377,32 @@
                     (set! last-col col))))))
           (set! col (+ col 1)))))))
 
+;; Spawn bonus coins in secret areas (under brick ceilings, inside alcoves)
+;; An empty tile with a solid ceiling and at least one solid side wall counts as a secret
+(define (coins-spawn-secrets [level : (Array i64)] [cols : i64] [rows : i64]) : unit
+  (let
+    [r : i64 3]
+    (while (< r (- rows 1))
+      (begin
+        (let
+          [c : i64 1]
+          (while (< c (- cols 1))
+            (begin
+              (when (= (array-ref level (+ (* r cols) c)) TILE-EMPTY)
+                (let
+                  [has-ceiling : bool (tile-solid? level cols rows c (- r 1))]
+                  [enclosed-left : bool (tile-solid? level cols rows (- c 1) r)]
+                  [enclosed-right : bool (tile-solid? level cols rows (+ c 1) r)]
+                  (when (and has-ceiling (or enclosed-left enclosed-right))
+                    (begin
+                      (let
+                        [cx : f64 (+ (* (cast c : f64) TILE-SIZE-F) (* TILE-SIZE-F 0.5))]
+                        [cy : f64 (+ (* (cast r : f64) TILE-SIZE-F) (* TILE-SIZE-F 0.5))]
+                        (coin-spawn cx cy))
+                      unit))))
+              (set! c (+ c 1)))))
+        (set! r (+ r 1))))))
+
 ;; Reset score (for new game/level)
 (define (score-reset) : unit
   (begin

@@ -376,3 +376,133 @@
       (assert-false
         (struct-get o active)
         "1-UP should be inactive after collection"))))
+
+;; Test: coins-spawn-secrets places coins under a brick ceiling
+(test
+  test-secret-coins-under-ceiling
+  (begin
+    (coins-init)
+    (set! coin-count 0)
+    ;; Build a 10x8 level with a brick ceiling at row 3, cols 3-5
+    ;; Empty space below it, solid walls on sides
+    (let
+      [lvl : (Array i64) (make-array i64 (* 10 8))]
+      [i : i64 0]
+      (begin
+        ;; Clear all to empty
+        (while (< i (* 10 8))
+          (begin
+            (array-set! lvl i TILE-EMPTY)
+            (set! i (+ i 1))))
+        ;; Solid floor at bottom row (row 7)
+        (let [c : i64 0]
+          (while (< c 10)
+            (begin
+              (array-set! lvl (+ (* 7 10) c) TILE-GROUND)
+              (set! c (+ c 1)))))
+        ;; Brick ceiling at row 3, cols 3-5
+        (array-set! lvl (+ (* 3 10) 3) TILE-BRICK)
+        (array-set! lvl (+ (* 3 10) 4) TILE-BRICK)
+        (array-set! lvl (+ (* 3 10) 5) TILE-BRICK)
+        ;; Side walls at col 2 and col 6, rows 3-6
+        (let [r : i64 3]
+          (while (<= r 6)
+            (begin
+              (array-set! lvl (+ (* r 10) 2) TILE-BRICK)
+              (array-set! lvl (+ (* r 10) 6) TILE-BRICK)
+              (set! r (+ r 1)))))
+        ;; Spawn secret coins
+        (coins-spawn-secrets lvl 10 8)
+        ;; Should have spawned coins under the ceiling (rows 4-6, cols 3-5)
+        (assert-true
+          (> coin-count 0)
+          "secret coins should spawn under brick ceiling")))))
+
+;; Test: coins-spawn-secrets does not place coins in open areas
+(test
+  test-no-secret-coins-in-open
+  (begin
+    (coins-init)
+    (set! coin-count 0)
+    ;; Build a flat open level with ground at bottom, nothing above
+    (let
+      [lvl : (Array i64) (make-array i64 (* 10 8))]
+      [i : i64 0]
+      (begin
+        (while (< i (* 10 8))
+          (begin
+            (array-set! lvl i TILE-EMPTY)
+            (set! i (+ i 1))))
+        ;; Ground at bottom
+        (let [c : i64 0]
+          (while (< c 10)
+            (begin
+              (array-set! lvl (+ (* 7 10) c) TILE-GROUND)
+              (set! c (+ c 1)))))
+        (coins-spawn-secrets lvl 10 8)
+        (assert-true
+          (= coin-count 0)
+          "no secret coins should spawn in open areas without ceilings")))))
+
+;; Test: coins-spawn-secrets does not place coins without side walls
+(test
+  test-no-secret-coins-without-sides
+  (begin
+    (coins-init)
+    (set! coin-count 0)
+    ;; Build a level with a brick ceiling but no side walls
+    (let
+      [lvl : (Array i64) (make-array i64 (* 10 8))]
+      [i : i64 0]
+      (begin
+        (while (< i (* 10 8))
+          (begin
+            (array-set! lvl i TILE-EMPTY)
+            (set! i (+ i 1))))
+        ;; Ground at bottom
+        (let [c : i64 0]
+          (while (< c 10)
+            (begin
+              (array-set! lvl (+ (* 7 10) c) TILE-GROUND)
+              (set! c (+ c 1)))))
+        ;; Brick ceiling at row 3, cols 3-5, but open sides
+        (array-set! lvl (+ (* 3 10) 3) TILE-BRICK)
+        (array-set! lvl (+ (* 3 10) 4) TILE-BRICK)
+        (array-set! lvl (+ (* 3 10) 5) TILE-BRICK)
+        (coins-spawn-secrets lvl 10 8)
+        (assert-true
+          (= coin-count 0)
+          "no secret coins should spawn without side walls")))))
+
+;; Test: secret coins add to existing coins without clearing them
+(test
+  test-secret-coins-add-to-existing
+  (begin
+    (coins-init)
+    (set! coin-count 0)
+    (coin-spawn 50.0 50.0)
+    (let
+      [before : i64 coin-count]
+      [lvl : (Array i64) (make-array i64 (* 10 8))]
+      [i : i64 0]
+      (begin
+        (while (< i (* 10 8))
+          (begin
+            (array-set! lvl i TILE-EMPTY)
+            (set! i (+ i 1))))
+        ;; Ground at bottom
+        (let [c : i64 0]
+          (while (< c 10)
+            (begin
+              (array-set! lvl (+ (* 7 10) c) TILE-GROUND)
+              (set! c (+ c 1)))))
+        ;; Brick ceiling with side walls
+        (array-set! lvl (+ (* 3 10) 3) TILE-BRICK)
+        (array-set! lvl (+ (* 3 10) 4) TILE-BRICK)
+        (array-set! lvl (+ (* 3 10) 5) TILE-BRICK)
+        (array-set! lvl (+ (* 4 10) 2) TILE-BRICK)
+        (array-set! lvl (+ (* 4 10) 6) TILE-BRICK)
+        (coins-spawn-secrets lvl 10 8)
+        (assert-true
+          (> coin-count before)
+          "secret coins should add to existing coins")))))

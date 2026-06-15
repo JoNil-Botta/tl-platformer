@@ -185,6 +185,7 @@
     ;; Spawn enemies, coins, and mushrooms based on generated level
     (enemies-spawn-in-level level LEVEL-COLS LEVEL-ROWS)
     (coins-spawn-in-level level LEVEL-COLS LEVEL-ROWS)
+    (coins-spawn-secrets level LEVEL-COLS LEVEL-ROWS)
     (mushrooms-init)
     (oneups-init)
     (score-reset)

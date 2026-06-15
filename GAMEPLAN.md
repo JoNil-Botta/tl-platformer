@@ -73,7 +73,7 @@ Side-scrolling platformer with:
 - [x] Multiple tile types: ground, brick, question block, pipe, empty
 - [x] Adjacency rules for pipe placement (vertical stacks)
 - [x] Question blocks only placed where reachable
-- [ ] Secret areas (hidden coin caches)
+- [x] Secret areas (hidden coin caches)
 
 ### Biomes
 - [ ] Overworld (grass, blue sky)
