@@ -122,7 +122,6 @@
       (and (not input-jump) prev-jump (< vy 0.0))
       (set! vy (* vy JUMP-CUT-MULTIPLIER)))
     (set! prev-jump input-jump)
-    ;; Remember if we hit a ceiling this frame (for question blocks)
     (set! player-hit-ceiling false)
     ;; Apply gravity
     (set! vy (+ vy (* GRAVITY dt)))
@@ -135,11 +134,6 @@
         (set! py (struct-get vresult py))
         (set! on-ground (struct-get vresult on-ground))
         (set! player-hit-ceiling (struct-get vresult hit-ceiling))
-        ;; Check for ceiling hit on question blocks
-        (when (struct-get vresult hit-ceiling)
-          (begin
-            (hit-question-block level cols rows px py)
-            unit))
         ;; If we just landed and a jump was buffered, auto-jump
         (when
           (and on-ground (> jump-buffer-timer 0.0))

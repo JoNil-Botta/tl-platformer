@@ -168,6 +168,10 @@
 (define COLOR-MUSHROOM : Color
   (Color (cast 220 : u8) (cast 60 : u8) (cast 60 : u8) (cast 255 : u8)))
 
+;; 1-UP mushroom color (green)
+(define COLOR-ONEUP : Color
+  (Color (cast 60 : u8) (cast 220 : u8) (cast 60 : u8) (cast 255 : u8)))
+
 ;; Check if a texture is loaded (id > 0)
 (define (texture-loaded? [tex : Texture2D]) : bool
   (> (struct-get tex id) (cast 0 : u32)))
@@ -314,6 +318,16 @@
     (DrawRectangleRec
       (Rectangle (- dest-x hw) (- dest-y hw) (* hw 2.0) (* hw 2.0))
       COLOR-MUSHROOM)))
+
+;; Draw a 1-UP mushroom at world position (ox, oy)
+(define (draw-oneup [ox : f64] [oy : f64]) : unit
+  (let
+    [dest-x : f32 (world-to-screen-x ox)]
+    [dest-y : f32 (world-to-screen-y oy)]
+    [hw : f32 10.0]
+    (DrawRectangleRec
+      (Rectangle (- dest-x hw) (- dest-y hw) (* hw 2.0) (* hw 2.0))
+      COLOR-ONEUP)))
 (define (draw-goal [gx : f64] [gy : f64] [tile-size : f32]) : unit
   (let
     [sx : f32 (world-to-screen-x gx)]

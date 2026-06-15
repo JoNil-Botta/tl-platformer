@@ -49,6 +49,29 @@
 (define MAX-MUSHROOMS : i64
   (cast 8 : i64))
 
+;; 1-UP mushroom constants
+(define ONEUP-W : f64
+  24.0)
+
+(define ONEUP-H : f64
+  24.0)
+
+(define ONEUP-HW : f64
+  12.0)
+
+(define ONEUP-HH : f64
+  12.0)
+
+(define ONEUP-SPEED : f64
+  60.0)
+
+(define ONEUP-GRAVITY : f64
+  1400.0)
+
+;; Maximum 1-UP mushrooms active at once
+(define MAX-ONEUPS : i64
+  (cast 4 : i64))
+
 ;; Coin struct
 (defstruct Coin
   (x f64)
@@ -57,6 +80,15 @@
 
 ;; Mushroom struct
 (defstruct Mushroom
+  (x f64)
+  (y f64)
+  (vx f64)
+  (vy f64)
+  (active bool)
+  (on-ground bool))
+
+;; 1-UP mushroom struct
+(defstruct OneUp
   (x f64)
   (y f64)
   (vx f64)
@@ -76,6 +108,13 @@
   (make-array Mushroom MAX-MUSHROOMS))
 
 (define mushroom-count : i64
+  (cast 0 : i64))
+
+;; 1-UP mushroom array
+(define oneups : (Array OneUp)
+  (make-array OneUp MAX-ONEUPS))
+
+(define oneup-count : i64
   (cast 0 : i64))
 
 ;; Score tracking
@@ -103,6 +142,15 @@
           (Mushroom 0.0 0.0 0.0 0.0 false false))
         (set! i (+ i 1))))))
 
+;; Initialize 1-UP mushrooms (all inactive)
+(define (oneups-init) : unit
+  (let [i : i64 0]
+    (while (< i MAX-ONEUPS)
+      (begin
+        (array-set! oneups i
+          (OneUp 0.0 0.0 0.0 0.0 false false))
+        (set! i (+ i 1))))))
+
 ;; Spawn a coin at position
 (define (coin-spawn [cx : f64] [cy : f64]) : bool
   (if (>= coin-count MAX-COINS)
@@ -123,6 +171,16 @@
       (set! mushroom-count (+ mushroom-count 1))
       true)))
 
+;; Spawn a 1-UP mushroom at position (pops out and moves right)
+(define (oneup-spawn [ox : f64] [oy : f64]) : bool
+  (if (>= oneup-count MAX-ONEUPS)
+    false
+    (begin
+      (array-set! oneups oneup-count
+        (OneUp ox oy ONEUP-SPEED 0.0 true false))
+      (set! oneup-count (+ oneup-count 1))
+      true)))
+
 ;; Check if player overlaps a coin (AABB)
 (define (player-coin-overlap? [px : f64] [py : f64] [cx : f64] [cy : f64]) : bool
   (and
@@ -138,6 +196,14 @@
     (> (+ px PLAYER-HW) (- mx MUSHROOM-HW))
     (< (- py PLAYER-HH) (+ my MUSHROOM-HH))
     (> (+ py PLAYER-HH) (- my MUSHROOM-HH))))
+
+;; Check if player overlaps a 1-UP mushroom (AABB)
+(define (player-oneup-overlap? [px : f64] [py : f64] [ox : f64] [oy : f64]) : bool
+  (and
+    (< (- px PLAYER-HW) (+ ox ONEUP-HW))
+    (> (+ px PLAYER-HW) (- ox ONEUP-HW))
+    (< (- py PLAYER-HH) (+ oy ONEUP-HH))
+    (> (+ py PLAYER-HH) (- oy ONEUP-HH))))
 
 ;; Check player vs all coins, collect overlapping ones
 ;; Returns number of coins collected this frame
@@ -188,6 +254,29 @@
           (set! i (+ i 1))))
       got-one)))
 
+;; Check player vs all 1-UP mushrooms, collect overlapping ones
+;; Returns true if a 1-UP was collected this frame
+(define (oneups-collect [px : f64] [py : f64]) : bool
+  (let
+    [got-one : bool false]
+    [i : i64 0]
+    (begin
+      (while (< i oneup-count)
+        (begin
+          (let
+            [o : OneUp (array-ref oneups i)]
+            (when (struct-get o active)
+              (let
+                [ox : f64 (struct-get o x)]
+                [oy : f64 (struct-get o y)]
+                (when (player-oneup-overlap? px py ox oy)
+                  (begin
+                    (array-set! oneups i (OneUp ox oy 0.0 0.0 false false))
+                    (set! lives (+ lives 1))
+                    (set! got-one true))))))
+          (set! i (+ i 1))))
+      got-one)))
+
 ;; Update a single mushroom: gravity + horizontal movement + collision
 (define (mushroom-update-single [dt : f64] [level : (Array i64)] [cols : i64] [rows : i64] [idx : i64]) : unit
   (let
@@ -222,6 +311,42 @@
     (while (< i mushroom-count)
       (begin
         (mushroom-update-single dt level cols rows i)
+        (set! i (+ i 1))))))
+
+;; Update a single 1-UP mushroom: gravity + horizontal movement + collision
+(define (oneup-update-single [dt : f64] [level : (Array i64)] [cols : i64] [rows : i64] [idx : i64]) : unit
+  (let
+    [o : OneUp (array-ref oneups idx)]
+    (when (struct-get o active)
+      (let
+        [x : f64 (struct-get o x)]
+        [y : f64 (struct-get o y)]
+        [vx : f64 (struct-get o vx)]
+        [vy : f64 (struct-get o vy)]
+        [on-ground : bool (struct-get o on-ground)]
+        ;; Apply gravity
+        [new-vy : f64 (+ vy (* ONEUP-GRAVITY dt))]
+        ;; Move horizontally with collision
+        [new-x : f64 (resolve-horizontal level cols rows x y (* vx dt))]
+        ;; If horizontal movement was blocked, reverse direction
+        [new-vx : f64 (if (= new-x x) (- 0.0 vx) vx)]
+        ;; Move vertically with collision
+        [vresult : VerticalResult (resolve-vertical level cols rows new-x y (* new-vy dt))]
+        [new-y : f64 (struct-get vresult py)]
+        [new-on-ground : bool (struct-get vresult on-ground)]
+        (begin
+          (when new-on-ground
+            (set! new-vy 0.0))
+          (array-set! oneups idx
+            (OneUp new-x new-y new-vx new-vy true new-on-ground)))))))
+
+;; Update all 1-UP mushrooms
+(define (oneups-update [dt : f64] [level : (Array i64)] [cols : i64] [rows : i64]) : unit
+  (let
+    [i : i64 0]
+    (while (< i oneup-count)
+      (begin
+        (oneup-update-single dt level cols rows i)
         (set! i (+ i 1))))))
 
 ;; Spawn coins in a level

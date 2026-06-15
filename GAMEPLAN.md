@@ -58,7 +58,7 @@ Side-scrolling platformer with:
 - [x] Coins (collect for score)
 - [x] Power-up blocks (question blocks that spawn items)
 - [x] Mushroom power-up (grow big, take extra hit)
-- [ ] 1-UP mushroom (extra life)
+- [x] 1-UP mushroom (extra life)
 
 ### Game State
 - [x] Score tracking (coins, enemy kills, time bonus)

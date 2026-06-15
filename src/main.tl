@@ -10,6 +10,10 @@
 (import "items.tl")
 (import "enemies.tl")
 
+;; Counter for question block hits (every 5th spawns a 1-UP)
+(define question-hits : i64
+  (cast 0 : i64))
+
 (extern (InitWindow [width : i32] [height : i32] [title : (Ptr u8)]) : unit)
 (extern (SetTargetFPS [fps : i32]) : unit)
 (extern (WindowShouldClose) : bool)
@@ -102,6 +106,16 @@
             (when (struct-get c active)
               (draw-coin (struct-get c x) (struct-get c y))))
           (set! i (+ i 1)))))
+    ;; Draw visible 1-UP mushrooms
+    (let
+      [i : i64 0]
+      (while (< i oneup-count)
+        (begin
+          (let
+            [o : OneUp (array-ref oneups i)]
+            (when (struct-get o active)
+              (draw-oneup (struct-get o x) (struct-get o y))))
+          (set! i (+ i 1)))))
     ;; Draw player
     (draw-player px py TILE-F)
     ;; HUD: title + score + lives + time
@@ -172,8 +186,10 @@
     (enemies-spawn-in-level level LEVEL-COLS LEVEL-ROWS)
     (coins-spawn-in-level level LEVEL-COLS LEVEL-ROWS)
     (mushrooms-init)
+    (oneups-init)
     (score-reset)
     (game-reset)
+    (set! question-hits 0)
     ;; Initialize camera centered on player start
     (camera-init START-X START-Y SCREEN-W-F SCREEN-H-F)
     (InitWindow
@@ -209,12 +225,15 @@
               WORLD-H)
             (enemies-update dt level LEVEL-COLS LEVEL-ROWS)
             (mushrooms-update dt level LEVEL-COLS LEVEL-ROWS)
-            ;; Check for question block hit and spawn mushroom
+            ;; Check for question block hit and spawn mushroom or 1-UP
             (when player-hit-ceiling
               (begin
                 (when (hit-question-block level LEVEL-COLS LEVEL-ROWS px py)
                   (begin
-                    (mushroom-spawn px (- py (* TILE-SIZE-F 1.5)))
+                    (set! question-hits (+ question-hits 1))
+                    (if (= (% question-hits 5) 0)
+                      (oneup-spawn px (- py (* TILE-SIZE-F 1.5)))
+                      (mushroom-spawn px (- py (* TILE-SIZE-F 1.5))))
                     unit))
                 unit))
             (set! player-hit-ceiling false)
@@ -222,6 +241,10 @@
             (coins-collect px py)
             ;; Check mushroom collection
             (mushrooms-collect px py)
+            ;; Check 1-UP collection
+            (oneups-collect px py)
+            ;; Update 1-UP mushrooms
+            (oneups-update dt level LEVEL-COLS LEVEL-ROWS)
             ;; Update timer
             (let
               [time-out : bool (timer-update dt)]
@@ -255,9 +278,11 @@
             (when (IsKeyDown KEY_R)
               (begin
                 (mushrooms-init)
+                (oneups-init)
                 (if (is-game-over?)
                   (game-reset)
-                  (player-reset))))))
+                  (player-reset))
+                (set! question-hits 0)))))
         (draw)))
     (unload-assets)
     (CloseWindow)

@@ -1,6 +1,7 @@
 (import "stdlib/ffi.tl")
 (import "stdlib/test.tl")
 (import "../src/player.tl")
+(import "../src/game_state.tl")
 (import "../src/items.tl")
 
 ;; Test: coins-init clears all coins
@@ -268,3 +269,110 @@
       (assert-false
         (struct-get m active)
         "mushroom should be inactive after collection"))))
+
+;; 1-UP mushroom tests
+
+;; Test: oneups-init clears all 1-UP mushrooms
+(test
+  test-oneups-init
+  (begin
+    (oneups-init)
+    (set! oneup-count 0)
+    (assert-true
+      (= oneup-count 0)
+      "oneup-count should be 0 after init")
+    (let
+      [o : OneUp (array-ref oneups 0)]
+      (assert-false
+        (struct-get o active)
+        "first 1-UP should be inactive after init"))))
+
+;; Test: oneup-spawn adds a 1-UP mushroom
+(test
+  test-oneup-spawn
+  (begin
+    (oneups-init)
+    (set! oneup-count 0)
+    (assert-true
+      (oneup-spawn 100.0 50.0)
+      "should spawn a 1-UP mushroom")
+    (assert-true
+      (= oneup-count 1)
+      "oneup-count should be 1 after spawn")
+    (let
+      [o : OneUp (array-ref oneups 0)]
+      (begin
+        (assert-true
+          (struct-get o active)
+          "spawned 1-UP should be active")
+        (assert-true
+          (= (struct-get o x) 100.0)
+          "spawned 1-UP x should be 100.0")
+        (assert-true
+          (= (struct-get o y) 50.0)
+          "spawned 1-UP y should be 50.0")))))
+
+;; Test: oneup-spawn fails when max reached
+(test
+  test-oneup-spawn-max
+  (begin
+    (oneups-init)
+    (set! oneup-count 0)
+    (let
+      [i : i64 0]
+      (while (< i MAX-ONEUPS)
+        (begin
+          (oneup-spawn (cast i : f64) 50.0)
+          (set! i (+ i 1)))))
+    (assert-false
+      (oneup-spawn 999.0 50.0)
+      "should fail to spawn when max 1-UPs reached")))
+
+;; Test: player-oneup-overlap? detects overlap
+(test
+  test-oneup-overlap
+  (assert-true
+    (player-oneup-overlap? 64.0 64.0 64.0 64.0)
+    "player and 1-UP at same position should overlap"))
+
+;; Test: player-oneup-overlap? no overlap when far apart
+(test
+  test-oneup-no-overlap
+  (assert-false
+    (player-oneup-overlap? 0.0 0.0 200.0 200.0)
+    "player and 1-UP far apart should not overlap"))
+
+;; Test: oneups-collect adds a life
+(test
+  test-oneup-collect-adds-life
+  (begin
+    (oneups-init)
+    (set! oneup-count 0)
+    (game-reset)
+    (let
+      [start-lives : i64 lives]
+      (begin
+        (oneup-spawn 64.0 64.0)
+        (let
+          [got : bool (oneups-collect 64.0 64.0)]
+          (begin
+            (assert-true
+              got
+              "should collect the 1-UP")
+            (assert-true
+              (= lives (+ start-lives 1))
+              "lives should increase by 1 after collecting 1-UP")))))))
+
+;; Test: collected 1-UP becomes inactive
+(test
+  test-oneup-inactive-after-collect
+  (begin
+    (oneups-init)
+    (set! oneup-count 0)
+    (oneup-spawn 64.0 64.0)
+    (oneups-collect 64.0 64.0)
+    (let
+      [o : OneUp (array-ref oneups 0)]
+      (assert-false
+        (struct-get o active)
+        "1-UP should be inactive after collection"))))
