@@ -1,0 +1,15 @@
+# TypeLisp compiler output
+target/
+tl-platformer
+*.o
+*.s
+*.tlci
+
+# Test binaries
+test_player
+test_physics
+test_enemies
+test_items
+test_camera
+test_world
+test_game_state

@@ -58,3 +58,63 @@
   (assert-true
     (= LEVEL-SIZE 1200)
     "level size should be 80 * 15 = 1200"))
+
+;; Question block tests
+
+;; Test: hit-question-block converts question block to empty block
+(test
+  test-hit-question-block
+  (let
+    [test-level : (Array i64) (make-array i64 15)]
+    (begin
+      ;; 5x3 level, row 0 has a question block at col 2
+      (array-set! test-level 0 0)
+      (array-set! test-level 1 0)
+      (array-set! test-level 2 3)
+      (array-set! test-level 3 0)
+      (array-set! test-level 4 0)
+      (array-set! test-level 5 1)
+      (array-set! test-level 6 1)
+      (array-set! test-level 7 1)
+      (array-set! test-level 8 1)
+      (array-set! test-level 9 1)
+      (array-set! test-level 10 1)
+      (array-set! test-level 11 1)
+      (array-set! test-level 12 1)
+      (array-set! test-level 13 1)
+      (array-set! test-level 14 1)
+      ;; Player at x=64 (col 2), head at y=18 (row 0 after subtracting PLAYER-HH)
+      (let
+        [hit : bool (hit-question-block test-level 5 3 64.0 18.0)]
+        (begin
+          (assert-true
+            hit
+            "should hit question block")
+          (assert-true
+            (= (array-ref test-level 2) 4)
+            "question block should become empty block (4)"))))))
+
+;; Test: hit-question-block returns false when no question block
+(test
+  test-no-question-block
+  (let
+    [test-level : (Array i64) (make-array i64 15)]
+    (begin
+      (array-set! test-level 0 0)
+      (array-set! test-level 1 0)
+      (array-set! test-level 2 0)
+      (array-set! test-level 3 0)
+      (array-set! test-level 4 0)
+      (array-set! test-level 5 1)
+      (array-set! test-level 6 1)
+      (array-set! test-level 7 1)
+      (array-set! test-level 8 1)
+      (array-set! test-level 9 1)
+      (array-set! test-level 10 1)
+      (array-set! test-level 11 1)
+      (array-set! test-level 12 1)
+      (array-set! test-level 13 1)
+      (array-set! test-level 14 1)
+      (assert-false
+        (hit-question-block test-level 5 3 64.0 18.0)
+        "should not hit when no question block present"))))

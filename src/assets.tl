@@ -156,6 +156,18 @@
 (define COLOR-COIN : Color
   (Color (cast 255 : u8) (cast 215 : u8) (cast 0 : u8) (cast 255 : u8)))
 
+;; Question block color
+(define COLOR-QUESTION : Color
+  (Color (cast 255 : u8) (cast 165 : u8) (cast 0 : u8) (cast 255 : u8)))
+
+;; Empty/used block color
+(define COLOR-EMPTY-BLOCK : Color
+  (Color (cast 139 : u8) (cast 90 : u8) (cast 43 : u8) (cast 255 : u8)))
+
+;; Mushroom color
+(define COLOR-MUSHROOM : Color
+  (Color (cast 220 : u8) (cast 60 : u8) (cast 60 : u8) (cast 255 : u8)))
+
 ;; Check if a texture is loaded (id > 0)
 (define (texture-loaded? [tex : Texture2D]) : bool
   (> (struct-get tex id) (cast 0 : u32)))
@@ -243,6 +255,12 @@
           (cast sy : i32)
           (Color (cast 255 : u8) (cast 255 : u8) (cast 255 : u8) (cast 255 : u8)))
         (DrawRectangleRec (Rectangle sx sy tile-size tile-size) COLOR-PLATFORM))
+      ;; Question block
+      (= tile-type 3)
+      (DrawRectangleRec (Rectangle sx sy tile-size tile-size) COLOR-QUESTION)
+      ;; Empty/used block
+      (= tile-type 4)
+      (DrawRectangleRec (Rectangle sx sy tile-size tile-size) COLOR-EMPTY-BLOCK)
       unit)))
 
 ;; Draw the player with animation at world position (px, py)
@@ -287,7 +305,15 @@
       (Rectangle dest-x dest-y (- enemy-size 4.0) (- enemy-size 4.0))
       COLOR-ENEMY)))
 
-;; Draw a flag pole at world position (gx, gy)
+;; Draw a mushroom at world position (mx, my)
+(define (draw-mushroom [mx : f64] [my : f64]) : unit
+  (let
+    [dest-x : f32 (world-to-screen-x mx)]
+    [dest-y : f32 (world-to-screen-y my)]
+    [hw : f32 10.0]
+    (DrawRectangleRec
+      (Rectangle (- dest-x hw) (- dest-y hw) (* hw 2.0) (* hw 2.0))
+      COLOR-MUSHROOM)))
 (define (draw-goal [gx : f64] [gy : f64] [tile-size : f32]) : unit
   (let
     [sx : f32 (world-to-screen-x gx)]

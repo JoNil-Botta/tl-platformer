@@ -21,10 +21,11 @@
   14.0)
 
 ;; Check if a tile coordinate is solid (bounds = solid walls)
+;; Any non-zero tile type is solid
 (define (tile-solid? [level : (Array i64)] [cols : i64] [rows : i64] [col : i64] [row : i64]) : bool
   (if (or (< col 0) (>= col cols) (< row 0) (>= row rows))
     true
-    (= (array-ref level (+ (* row cols) col)) 1)))
+    (not (= (array-ref level (+ (* row cols) col)) 0))))
 
 ;; Floor division: works correctly for negative numerators
 ;; C integer division truncates toward zero; we need floor for tile coords
@@ -67,7 +68,8 @@
 ;; Result struct for vertical collision resolution
 (defstruct VerticalResult
   (py f64)
-  (on-ground bool))
+  (on-ground bool)
+  (hit-ceiling bool))
 
 ;; Find the first solid row below the player, starting from start-row
 (define (find-first-solid-below [level : (Array i64)] [cols : i64] [rows : i64] [col : i64] [start-row : i64]) : i64
@@ -97,16 +99,18 @@
           [snap-row : i64 (if (< snap-row-left snap-row-right) snap-row-left snap-row-right)]
           (VerticalResult
             (- (- (cast (* snap-row TILE-SIZE) : f64) PLAYER-HH) 0.1)
-            true))
-        ;; Moving up: snap to bottom of tile above
+            true
+            false))
+        ;; Moving up: snap to bottom of tile above, report ceiling hit
         (let
           [top-y : f64 (- new-py PLAYER-HH)]
           [top-row : i64 (floor-div (cast top-y : i64) TILE-SIZE)]
           [snap-row : i64 (if (< top-row 0) -1 top-row)]
           (VerticalResult
             (+ (+ (cast (* (+ snap-row 1) TILE-SIZE) : f64) PLAYER-HH) 0.1)
-            false)))
-      (VerticalResult new-py false))))
+            false
+            true)))
+      (VerticalResult new-py false false))))
 
 ;; Check if player is on ground (point at feet)
 (define (on-ground? [level : (Array i64)] [cols : i64] [rows : i64] [px : f64] [py : f64]) : bool

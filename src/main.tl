@@ -7,9 +7,6 @@
 (import "world.tl")
 
 (import "game_state.tl")
-(import "game_state.tl")
-(import "game_state.tl")
-(import "game_state.tl")
 (import "items.tl")
 (import "enemies.tl")
 
@@ -84,6 +81,16 @@
             [e : Enemy (array-ref enemies i)]
             (when (struct-get e alive)
               (draw-enemy (struct-get e x) (struct-get e y) TILE-F)))
+          (set! i (+ i 1)))))
+    ;; Draw visible mushrooms
+    (let
+      [i : i64 0]
+      (while (< i mushroom-count)
+        (begin
+          (let
+            [m : Mushroom (array-ref mushrooms i)]
+            (when (struct-get m active)
+              (draw-mushroom (struct-get m x) (struct-get m y))))
           (set! i (+ i 1)))))
     ;; Draw visible coins
     (let
@@ -161,9 +168,10 @@
                 (begin
                   (array-set! level (level-idx (- LEVEL-ROWS 1) c) 1)
                   (set! c (+ c 1)))))))))
-    ;; Spawn enemies and coins based on generated level
+    ;; Spawn enemies, coins, and mushrooms based on generated level
     (enemies-spawn-in-level level LEVEL-COLS LEVEL-ROWS)
     (coins-spawn-in-level level LEVEL-COLS LEVEL-ROWS)
+    (mushrooms-init)
     (score-reset)
     (game-reset)
     ;; Initialize camera centered on player start
@@ -200,8 +208,20 @@
               WORLD-W
               WORLD-H)
             (enemies-update dt level LEVEL-COLS LEVEL-ROWS)
+            (mushrooms-update dt level LEVEL-COLS LEVEL-ROWS)
+            ;; Check for question block hit and spawn mushroom
+            (when player-hit-ceiling
+              (begin
+                (when (hit-question-block level LEVEL-COLS LEVEL-ROWS px py)
+                  (begin
+                    (mushroom-spawn px (- py (* TILE-SIZE-F 1.5)))
+                    unit))
+                unit))
+            (set! player-hit-ceiling false)
             ;; Check coin collection
             (coins-collect px py)
+            ;; Check mushroom collection
+            (mushrooms-collect px py)
             ;; Update timer
             (let
               [time-out : bool (timer-update dt)]
@@ -233,9 +253,11 @@
                 (player-reset)))))
             ;; Reset / restart on R key
             (when (IsKeyDown KEY_R)
-              (if (is-game-over?)
-                (game-reset)
-                (player-reset)))))
+              (begin
+                (mushrooms-init)
+                (if (is-game-over?)
+                  (game-reset)
+                  (player-reset))))))
         (draw)))
     (unload-assets)
     (CloseWindow)

@@ -147,3 +147,46 @@
             (> (struct-get result py) 10.0)
             "should snap below ceiling")))))
 )
+
+;; Test: tile-solid? treats any non-zero tile as solid
+(test
+  test-tile-solid-nonzero
+  (let
+    [level : (Array i64) (make-test-level)]
+    (begin
+      ;; Set tile 2 to question block (3) — should be solid
+      (array-set! level 2 3)
+      (assert-true
+        (tile-solid? level 5 3 2 0)
+        "question block (3) should be solid")
+      ;; Set tile 3 to empty block (4) — should be solid
+      (array-set! level 3 4)
+      (assert-true
+        (tile-solid? level 5 3 3 0)
+        "empty block (4) should be solid")
+      ;; Tile 0 remains empty — not solid
+      (assert-false
+        (tile-solid? level 5 3 0 0)
+        "empty (0) should not be solid"))))
+
+;; Test: resolve-vertical reports hit-ceiling when moving up into solid
+(test
+  test-hit-ceiling-flag
+  (let
+    [level : (Array i64) (make-test-level)]
+    (begin
+      ;; Create a ceiling: row 0 is solid
+      (array-set! level 0 1)
+      (array-set! level 1 1)
+      (array-set! level 2 1)
+      (array-set! level 3 1)
+      (array-set! level 4 1)
+      (let
+        [result : VerticalResult (resolve-vertical level 5 3 64.0 40.0 -30.0)]
+        (begin
+          (assert-true
+            (struct-get result hit-ceiling)
+            "should report hit-ceiling when moving up into solid")
+          (assert-false
+            (struct-get result on-ground)
+            "should not be on ground when hitting ceiling"))))))

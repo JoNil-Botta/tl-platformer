@@ -47,6 +47,12 @@
 (define prev-jump : bool
   false)
 
+(define player-big : bool
+  false)
+
+(define player-hit-ceiling : bool
+  false)
+
 ;; Reset player to start position
 (define (player-reset) : unit
   (begin
@@ -57,7 +63,21 @@
     (set! on-ground false)
     (set! coyote-timer 0.0)
     (set! jump-buffer-timer 0.0)
-    (set! prev-jump false)))
+    (set! prev-jump false)
+    (set! player-big false)))
+
+;; Grow player (mushroom collected)
+(define (player-grow) : unit
+  (set! player-big true))
+
+;; Player takes damage from enemy
+;; Returns true if survived (was big and shrank), false if should die
+(define (player-take-damage) : bool
+  (if player-big
+    (begin
+      (set! player-big false)
+      true)
+    false))
 
 ;; Pure player update: takes all state as parameters, returns nothing but computes new state
 ;; This is the core testable function - it writes results to the provided mutable references
@@ -101,8 +121,9 @@
     (when
       (and (not input-jump) prev-jump (< vy 0.0))
       (set! vy (* vy JUMP-CUT-MULTIPLIER)))
-    ;; Remember jump state for next frame
     (set! prev-jump input-jump)
+    ;; Remember if we hit a ceiling this frame (for question blocks)
+    (set! player-hit-ceiling false)
     ;; Apply gravity
     (set! vy (+ vy (* GRAVITY dt)))
     ;; Move horizontally with collision
@@ -113,6 +134,12 @@
       (begin
         (set! py (struct-get vresult py))
         (set! on-ground (struct-get vresult on-ground))
+        (set! player-hit-ceiling (struct-get vresult hit-ceiling))
+        ;; Check for ceiling hit on question blocks
+        (when (struct-get vresult hit-ceiling)
+          (begin
+            (hit-question-block level cols rows px py)
+            unit))
         ;; If we just landed and a jump was buffered, auto-jump
         (when
           (and on-ground (> jump-buffer-timer 0.0))

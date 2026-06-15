@@ -43,6 +43,22 @@
 (define START-Y : f64
   64.0)
 
+;; Tile type constants
+(define TILE-EMPTY : i64
+  (cast 0 : i64))
+
+(define TILE-GROUND : i64
+  (cast 1 : i64))
+
+(define TILE-PLATFORM : i64
+  (cast 2 : i64))
+
+(define TILE-QUESTION : i64
+  (cast 3 : i64))
+
+(define TILE-EMPTY-BLOCK : i64
+  (cast 4 : i64))
+
 ;; Goal zone: flag pole position (right side of level)
 (define GOAL-X : f64
   (- WORLD-W (* TILE-SIZE-F 3.0)))
@@ -67,3 +83,26 @@
   (and
     (>= px (- GOAL-X TILE-SIZE-F))
     (<= py (+ GOAL-Y TILE-SIZE-F))))
+
+;; Hit a question block from below: if there's a question block at player's head,
+;; convert it to an empty block and return true
+(define (hit-question-block [level : (Array i64)] [cols : i64] [rows : i64] [px : f64] [py : f64]) : bool
+  (let
+    [top-y : f64 (- py PLAYER-HH)]
+    [top-row : i64 (floor-div (cast top-y : i64) TILE-SIZE)]
+    [left-col : i64 (floor-div (cast (- px PLAYER-HW) : i64) TILE-SIZE)]
+    [right-col : i64 (floor-div (cast (+ px PLAYER-HW) : i64) TILE-SIZE)]
+    [hit-left : bool
+      (if (and (>= top-row 0) (< top-row rows) (>= left-col 0) (< left-col cols))
+        (= (array-ref level (+ (* top-row cols) left-col)) TILE-QUESTION)
+        false)]
+    [hit-right : bool
+      (if (and (>= top-row 0) (< top-row rows) (>= right-col 0) (< right-col cols))
+        (= (array-ref level (+ (* top-row cols) right-col)) TILE-QUESTION)
+        false)]
+    (begin
+      (when hit-left
+        (array-set! level (+ (* top-row cols) left-col) TILE-EMPTY-BLOCK))
+      (when hit-right
+        (array-set! level (+ (* top-row cols) right-col) TILE-EMPTY-BLOCK))
+      (or hit-left hit-right))))

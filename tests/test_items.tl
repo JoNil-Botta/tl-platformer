@@ -1,5 +1,6 @@
 (import "stdlib/ffi.tl")
 (import "stdlib/test.tl")
+(import "../src/player.tl")
 (import "../src/items.tl")
 
 ;; Test: coins-init clears all coins
@@ -163,3 +164,107 @@
     (assert-true
       (= coins-collected 0)
       "coins-collected should be 0 after reset")))
+
+;; Mushroom tests
+
+;; Test: mushrooms-init clears all mushrooms
+(test
+  test-mushrooms-init
+  (begin
+    (mushrooms-init)
+    (set! mushroom-count 0)
+    (assert-true
+      (= mushroom-count 0)
+      "mushroom-count should be 0 after init")
+    (let
+      [m : Mushroom (array-ref mushrooms 0)]
+      (assert-false
+        (struct-get m active)
+        "first mushroom should be inactive after init"))))
+
+;; Test: mushroom-spawn adds a mushroom
+(test
+  test-mushroom-spawn
+  (begin
+    (mushrooms-init)
+    (set! mushroom-count 0)
+    (assert-true
+      (mushroom-spawn 100.0 50.0)
+      "should spawn a mushroom")
+    (assert-true
+      (= mushroom-count 1)
+      "mushroom-count should be 1 after spawn")
+    (let
+      [m : Mushroom (array-ref mushrooms 0)]
+      (begin
+        (assert-true
+          (struct-get m active)
+          "spawned mushroom should be active")
+        (assert-true
+          (= (struct-get m x) 100.0)
+          "spawned mushroom x should be 100.0")
+        (assert-true
+          (= (struct-get m y) 50.0)
+          "spawned mushroom y should be 50.0")))))
+
+;; Test: mushroom-spawn fails when max reached
+(test
+  test-mushroom-spawn-max
+  (begin
+    (mushrooms-init)
+    (set! mushroom-count 0)
+    (let
+      [i : i64 0]
+      (while (< i MAX-MUSHROOMS)
+        (begin
+          (mushroom-spawn (cast i : f64) 50.0)
+          (set! i (+ i 1)))))
+    (assert-false
+      (mushroom-spawn 999.0 50.0)
+      "should fail to spawn when max mushrooms reached")))
+
+;; Test: player-mushroom-overlap? detects overlap
+(test
+  test-mushroom-overlap
+  (assert-true
+    (player-mushroom-overlap? 64.0 64.0 64.0 64.0)
+    "player and mushroom at same position should overlap"))
+
+;; Test: player-mushroom-overlap? no overlap when far apart
+(test
+  test-mushroom-no-overlap
+  (assert-false
+    (player-mushroom-overlap? 0.0 0.0 200.0 200.0)
+    "player and mushroom far apart should not overlap"))
+
+;; Test: mushrooms-collect makes player big
+(test
+  test-mushroom-collect-grows-player
+  (begin
+    (mushrooms-init)
+    (set! mushroom-count 0)
+    (set! player-big false)
+    (mushroom-spawn 64.0 64.0)
+    (let
+      [got : bool (mushrooms-collect 64.0 64.0)]
+      (begin
+        (assert-true
+          got
+          "should collect the mushroom")
+        (assert-true
+          player-big
+          "player should be big after collecting mushroom")))))
+
+;; Test: collected mushroom becomes inactive
+(test
+  test-mushroom-inactive-after-collect
+  (begin
+    (mushrooms-init)
+    (set! mushroom-count 0)
+    (mushroom-spawn 64.0 64.0)
+    (mushrooms-collect 64.0 64.0)
+    (let
+      [m : Mushroom (array-ref mushrooms 0)]
+      (assert-false
+        (struct-get m active)
+        "mushroom should be inactive after collection"))))

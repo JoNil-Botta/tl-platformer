@@ -164,7 +164,8 @@
                         (Enemy ex ey 0.0 0.0 (struct-get e dir) false false))
                       (set! result (cast 1 : i64)))
                     (begin
-                      (set! result (cast 2 : i64)))))))
+                      (when (not (player-take-damage))
+                      (set! result (cast 2 : i64))))))))
             (set! i (+ i 1)))))
       result)))
 

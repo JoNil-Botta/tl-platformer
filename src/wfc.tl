@@ -1,7 +1,7 @@
 (import "stdlib/ffi.tl")
 
 ;; Minimal WFC level generator for tl-platformer
-;; 0 = Empty (air), 1 = Solid (ground/wall)
+;; 0 = Empty (air), 1 = Solid (ground/wall), 3 = Question block
 
 ;; Generate a simple platformer level into the given grid
 ;; Returns true on success
@@ -44,6 +44,25 @@
                     (array-set! grid (+ (* r cols) c) (cast 1 : i64)))
                   (set! c (+ c (cast 1 : i64))))))
             (set! r (+ r (cast 1 : i64))))))
+      ;; Place question blocks above ground
+      (let
+        [c : i64 (cast 5 : i64)]
+        (while (< c (- cols (cast 5 : i64)))
+          (begin
+            (when (= (% c (cast 10 : i64)) (cast 3 : i64))
+              (let
+                [ground-row : i64 (- rows (cast 2 : i64))]
+                (begin
+                  ;; Find ground in this column
+                  (while (and (>= ground-row 0) (= (array-ref grid (+ (* ground-row cols) c)) 0))
+                    (set! ground-row (- ground-row 1)))
+                  ;; If ground found and there's space above, place question block
+                  (when (>= ground-row 3)
+                    (let
+                      [block-row : i64 (- ground-row 3)]
+                      (when (= (array-ref grid (+ (* block-row cols) c)) 0)
+                        (array-set! grid (+ (* block-row cols) c) 3)))))))
+            (set! c (+ c 1)))))
       true)))
 
 ;; Copy WFC grid to level array

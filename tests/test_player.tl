@@ -246,3 +246,71 @@
           (assert-true
             (>= vy pre-vy)
             "coyote time expired: should not be able to jump"))))))
+
+;; Big player / mushroom tests
+
+;; Test: player starts small after reset
+(test
+  test-player-starts-small
+  (begin
+    (player-reset)
+    (assert-false
+      player-big
+      "player should start small after reset")))
+
+;; Test: player-grow makes player big
+(test
+  test-player-grow
+  (begin
+    (player-reset)
+    (player-grow)
+    (assert-true
+      player-big
+      "player should be big after grow")))
+
+;; Test: player reset clears big state
+(test
+  test-player-reset-clears-big
+  (begin
+    (player-reset)
+    (player-grow)
+    (player-reset)
+    (assert-false
+      player-big
+      "player should be small after reset")))
+
+;; Test: player-take-damage when small returns false
+(test
+  test-damage-small-kills
+  (begin
+    (player-reset)
+    (set! player-big false)
+    (assert-false
+      (player-take-damage)
+      "take-damage when small should return false")))
+
+;; Test: player-take-damage when big shrinks and returns true
+(test
+  test-damage-big-shrinks
+  (begin
+    (player-reset)
+    (player-grow)
+    (assert-true
+      (player-take-damage)
+      "take-damage when big should return true")
+    (assert-false
+      player-big
+      "player should shrink after damage")))
+
+;; Test: player-hit-ceiling is cleared each frame
+(test
+  test-hit-ceiling-cleared
+  (let
+    [level : (Array i64) (make-test-level)]
+    (begin
+      (player-reset)
+      (set! player-hit-ceiling true)
+      (player-update 0.1 false false false level 5 3)
+      (assert-false
+        player-hit-ceiling
+        "hit-ceiling should be cleared after update with no collision"))))

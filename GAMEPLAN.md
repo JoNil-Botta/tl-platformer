@@ -56,8 +56,8 @@ Side-scrolling platformer with:
 
 ### Items & Collectibles
 - [x] Coins (collect for score)
-- [ ] Power-up blocks (question blocks that spawn items)
-- [ ] Mushroom power-up (grow big, take extra hit)
+- [x] Power-up blocks (question blocks that spawn items)
+- [x] Mushroom power-up (grow big, take extra hit)
 - [ ] 1-UP mushroom (extra life)
 
 ### Game State
@@ -65,7 +65,7 @@ Side-scrolling platformer with:
 - [x] Lives system (3 lives default)
 - [x] Timer (countdown, bonus for finishing fast)
 - [x] Death and respawn (fall in pit = death, enemy side-hit = death)
-- [ ] Game over screen
+- [x] Game over screen
 
 ## Phase 3: Procedural Worlds
 

@@ -1,6 +1,7 @@
 (import "stdlib/ffi.tl")
 (import "stdlib/test.tl")
 (import "../src/physics.tl")
+(import "../src/player.tl")
 (import "../src/enemies.tl")
 
 ;; Test level: 5x3 grid, bottom row solid
