@@ -14,6 +14,10 @@
 (define question-hits : i64
   (cast 0 : i64))
 
+;; Biome switch cooldown (seconds)
+(define biome-cooldown : f64
+  0.0)
+
 (extern (InitWindow [width : i32] [height : i32] [title : (Ptr u8)]) : unit)
 (extern (SetTargetFPS [fps : i32]) : unit)
 (extern (WindowShouldClose) : bool)
@@ -40,14 +44,16 @@
 (define KEY_R : i32
   (cast 82 : i32))
 
+(define KEY_B : i32
+  (cast 66 : i32))
+
 (define TILE-F : f32
   (cast TILE-SIZE : f32))
 
 (define (draw) : unit
   (begin
     (BeginDrawing)
-    (ClearBackground
-      (Color (cast 135 : u8) (cast 206 : u8) (cast 235 : u8) (cast 255 : u8)))
+    (ClearBackground (biome-background-color))
     ;; Draw visible tiles only (cull off-screen)
     (let
       [start-col : i64 (floor-div (cast camera-x : i64) TILE-SIZE)]
@@ -283,7 +289,14 @@
                 (if (is-game-over?)
                   (game-reset)
                   (player-reset))
-                (set! question-hits 0)))))
+                (set! question-hits 0)))
+            ;; Cycle biome on B key with cooldown
+            (when (and (IsKeyDown KEY_B) (<= biome-cooldown 0.0))
+              (begin
+                (set! current-biome (% (+ current-biome 1) 3))
+                (set! biome-cooldown 0.2)))
+            (when (> biome-cooldown 0.0)
+              (set! biome-cooldown (- biome-cooldown dt)))))
         (draw)))
     (unload-assets)
     (CloseWindow)

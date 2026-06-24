@@ -184,6 +184,101 @@
 (define COLOR-ONEUP : Color
   (Color (cast 60 : u8) (cast 220 : u8) (cast 60 : u8) (cast 255 : u8)))
 
+;; Biome system
+(define BIOME-OVERWORLD : i64 (cast 0 : i64))
+(define BIOME-UNDERGROUND : i64 (cast 1 : i64))
+(define BIOME-CASTLE : i64 (cast 2 : i64))
+
+;; Current biome (global, set before drawing)
+(define current-biome : i64 (cast 0 : i64))
+
+;; Background colors per biome
+(define COLOR-BG-OVERWORLD : Color
+  (Color (cast 135 : u8) (cast 206 : u8) (cast 235 : u8) (cast 255 : u8)))
+
+(define COLOR-BG-UNDERGROUND : Color
+  (Color (cast 30 : u8) (cast 30 : u8) (cast 40 : u8) (cast 255 : u8)))
+
+(define COLOR-BG-CASTLE : Color
+  (Color (cast 20 : u8) (cast 10 : u8) (cast 10 : u8) (cast 255 : u8)))
+
+;; Underground tile colors
+(define COLOR-UG-GROUND : Color
+  (Color (cast 80 : u8) (cast 80 : u8) (cast 80 : u8) (cast 255 : u8)))
+
+(define COLOR-UG-PLATFORM : Color
+  (Color (cast 100 : u8) (cast 70 : u8) (cast 40 : u8) (cast 255 : u8)))
+
+(define COLOR-UG-QUESTION : Color
+  (Color (cast 200 : u8) (cast 120 : u8) (cast 0 : u8) (cast 255 : u8)))
+
+(define COLOR-UG-EMPTY-BLOCK : Color
+  (Color (cast 100 : u8) (cast 70 : u8) (cast 40 : u8) (cast 255 : u8)))
+
+(define COLOR-UG-BRICK : Color
+  (Color (cast 120 : u8) (cast 60 : u8) (cast 40 : u8) (cast 255 : u8)))
+
+(define COLOR-UG-PIPE-TOP : Color
+  (Color (cast 100 : u8) (cast 80 : u8) (cast 60 : u8) (cast 255 : u8)))
+
+(define COLOR-UG-PIPE-BODY : Color
+  (Color (cast 90 : u8) (cast 70 : u8) (cast 50 : u8) (cast 255 : u8)))
+
+;; Castle tile colors
+(define COLOR-CASTLE-GROUND : Color
+  (Color (cast 60 : u8) (cast 60 : u8) (cast 60 : u8) (cast 255 : u8)))
+
+(define COLOR-CASTLE-PLATFORM : Color
+  (Color (cast 80 : u8) (cast 80 : u8) (cast 90 : u8) (cast 255 : u8)))
+
+(define COLOR-CASTLE-QUESTION : Color
+  (Color (cast 180 : u8) (cast 140 : u8) (cast 0 : u8) (cast 255 : u8)))
+
+(define COLOR-CASTLE-EMPTY-BLOCK : Color
+  (Color (cast 80 : u8) (cast 80 : u8) (cast 80 : u8) (cast 255 : u8)))
+
+(define COLOR-CASTLE-BRICK : Color
+  (Color (cast 140 : u8) (cast 40 : u8) (cast 30 : u8) (cast 255 : u8)))
+
+(define COLOR-CASTLE-PIPE-TOP : Color
+  (Color (cast 80 : u8) (cast 80 : u8) (cast 80 : u8) (cast 255 : u8)))
+
+(define COLOR-CASTLE-PIPE-BODY : Color
+  (Color (cast 70 : u8) (cast 70 : u8) (cast 70 : u8) (cast 255 : u8)))
+
+;; Get background color for current biome
+(define (biome-background-color) : Color
+  (cond
+    [(= current-biome BIOME-UNDERGROUND) COLOR-BG-UNDERGROUND]
+    [(= current-biome BIOME-CASTLE) COLOR-BG-CASTLE]
+    [else COLOR-BG-OVERWORLD]))
+
+;; Get tile color for current biome and tile type
+(define (biome-tile-color [tile-type : i64]) : Color
+  (cond
+    [(= tile-type 1)
+     (if (= current-biome BIOME-UNDERGROUND) COLOR-UG-GROUND
+       (if (= current-biome BIOME-CASTLE) COLOR-CASTLE-GROUND COLOR-GROUND))]
+    [(= tile-type 2)
+     (if (= current-biome BIOME-UNDERGROUND) COLOR-UG-PLATFORM
+       (if (= current-biome BIOME-CASTLE) COLOR-CASTLE-PLATFORM COLOR-PLATFORM))]
+    [(= tile-type 3)
+     (if (= current-biome BIOME-UNDERGROUND) COLOR-UG-QUESTION
+       (if (= current-biome BIOME-CASTLE) COLOR-CASTLE-QUESTION COLOR-QUESTION))]
+    [(= tile-type 4)
+     (if (= current-biome BIOME-UNDERGROUND) COLOR-UG-EMPTY-BLOCK
+       (if (= current-biome BIOME-CASTLE) COLOR-CASTLE-EMPTY-BLOCK COLOR-EMPTY-BLOCK))]
+    [(= tile-type 5)
+     (if (= current-biome BIOME-UNDERGROUND) COLOR-UG-BRICK
+       (if (= current-biome BIOME-CASTLE) COLOR-CASTLE-BRICK COLOR-BRICK))]
+    [(= tile-type 6)
+     (if (= current-biome BIOME-UNDERGROUND) COLOR-UG-PIPE-TOP
+       (if (= current-biome BIOME-CASTLE) COLOR-CASTLE-PIPE-TOP COLOR-PIPE-TOP))]
+    [(= tile-type 7)
+     (if (= current-biome BIOME-UNDERGROUND) COLOR-UG-PIPE-BODY
+       (if (= current-biome BIOME-CASTLE) COLOR-CASTLE-PIPE-BODY COLOR-PIPE-BODY))]
+    [else (Color (cast 255 : u8) (cast 0 : u8) (cast 255 : u8) (cast 255 : u8))]))
+
 ;; Check if a texture is loaded (id > 0)
 (define (texture-loaded? [tex : Texture2D]) : bool
   (> (struct-get tex id) (cast 0 : u32)))
@@ -251,42 +346,41 @@
     [sy : f32 (world-to-screen-y wy)]
     (cond
       ;; Empty tile - draw nothing (sky is background)
-      (= tile-type 0)
-      unit
+      [(= tile-type 0) unit]
       ;; Solid ground
-      (= tile-type 1)
-      (if (texture-loaded? tile-ground)
-        (DrawTexture
-          tile-ground
-          (cast sx : i32)
-          (cast sy : i32)
-          (Color (cast 255 : u8) (cast 255 : u8) (cast 255 : u8) (cast 255 : u8)))
-        (DrawRectangleRec (Rectangle sx sy tile-size tile-size) COLOR-GROUND))
+      [(= tile-type 1)
+       (if (texture-loaded? tile-ground)
+         (DrawTexture
+           tile-ground
+           (cast sx : i32)
+           (cast sy : i32)
+           (Color (cast 255 : u8) (cast 255 : u8) (cast 255 : u8) (cast 255 : u8)))
+         (DrawRectangleRec (Rectangle sx sy tile-size tile-size) (biome-tile-color tile-type)))]
       ;; Platform
-      (= tile-type 2)
-      (if (texture-loaded? tile-platform)
-        (DrawTexture
-          tile-platform
-          (cast sx : i32)
-          (cast sy : i32)
-          (Color (cast 255 : u8) (cast 255 : u8) (cast 255 : u8) (cast 255 : u8)))
-        (DrawRectangleRec (Rectangle sx sy tile-size tile-size) COLOR-PLATFORM))
+      [(= tile-type 2)
+       (if (texture-loaded? tile-platform)
+         (DrawTexture
+           tile-platform
+           (cast sx : i32)
+           (cast sy : i32)
+           (Color (cast 255 : u8) (cast 255 : u8) (cast 255 : u8) (cast 255 : u8)))
+         (DrawRectangleRec (Rectangle sx sy tile-size tile-size) (biome-tile-color tile-type)))]
       ;; Question block
-      (= tile-type 3)
-      (DrawRectangleRec (Rectangle sx sy tile-size tile-size) COLOR-QUESTION)
+      [(= tile-type 3)
+       (DrawRectangleRec (Rectangle sx sy tile-size tile-size) (biome-tile-color tile-type))]
       ;; Empty/used block
-      (= tile-type 4)
-      (DrawRectangleRec (Rectangle sx sy tile-size tile-size) COLOR-EMPTY-BLOCK)
+      [(= tile-type 4)
+       (DrawRectangleRec (Rectangle sx sy tile-size tile-size) (biome-tile-color tile-type))]
       ;; Brick block
-      (= tile-type 5)
-      (DrawRectangleRec (Rectangle sx sy tile-size tile-size) COLOR-BRICK)
+      [(= tile-type 5)
+       (DrawRectangleRec (Rectangle sx sy tile-size tile-size) (biome-tile-color tile-type))]
       ;; Pipe top
-      (= tile-type 6)
-      (DrawRectangleRec (Rectangle sx sy tile-size tile-size) COLOR-PIPE-TOP)
+      [(= tile-type 6)
+       (DrawRectangleRec (Rectangle sx sy tile-size tile-size) (biome-tile-color tile-type))]
       ;; Pipe body
-      (= tile-type 7)
-      (DrawRectangleRec (Rectangle sx sy tile-size tile-size) COLOR-PIPE-BODY)
-      unit)))
+      [(= tile-type 7)
+       (DrawRectangleRec (Rectangle sx sy tile-size tile-size) (biome-tile-color tile-type))]
+      [else unit])))
 
 ;; Draw the player with animation at world position (px, py)
 ;; Camera offset is applied to transform to screen coordinates

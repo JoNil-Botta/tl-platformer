@@ -76,10 +76,10 @@ Side-scrolling platformer with:
 - [x] Secret areas (hidden coin caches)
 
 ### Biomes
-- [ ] Overworld (grass, blue sky)
-- [ ] Underground (dark, limited visibility)
-- [ ] Castle (lava hazards, harder enemies)
-- [ ] Biome-specific tilesets and background colors
+- [x] Overworld (grass, blue sky)
+- [x] Underground (dark, limited visibility)
+- [x] Castle (lava hazards, harder enemies)
+- [x] Biome-specific tilesets and background colors
 
 ### Level Progression
 - [ ] Sequence of levels: 1-1, 1-2, 1-3, 1-4 (castle)
@@ -136,6 +136,7 @@ render-game(state) -> void (Raylib calls, untested in CI)
 | Side hit | Player beside enemy, assert player damaged | `tests/test_enemies.tl` |
 | Coin collect | Overlap coin, assert coin gone, score +1 | `tests/test_items.tl` |
 | Power-up | Touch mushroom, assert player big | `tests/test_items.tl` |
+| Biome colors | Set biome, assert background and tile colors change | `tests/test_biomes.tl` |
 | WFC generation | Generate, assert valid (no contradictions, collapsed) | `tests/test_wfc.tl` |
 | Level complete | Reach flag pole, assert win state | `tests/test_world.tl` |
 | Death (pit) | y below level, assert lives--, respawn | `tests/test_world.tl` |
@@ -207,6 +208,7 @@ tests/
   test_player.tl   # Player movement, coyote, buffer
   test_enemies.tl  # Enemy AI, stomp, damage
   test_items.tl    # Coin collect, power-ups
+  test_biomes.tl   # Biome colors and backgrounds
   test_world.tl    # Level complete, death, respawn
 ```
 
