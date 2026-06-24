@@ -2,7 +2,7 @@
 (import "world.tl")
 
 ;; Seeded pseudo-random number generator (LCG)
-;; Deterministic per seed — essential for testing
+;; Deterministic per seed -- essential for testing
 (define wfc-rng-state : i64
   (cast 0 : i64))
 

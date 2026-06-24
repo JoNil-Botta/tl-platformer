@@ -5,6 +5,7 @@
 (import "player.tl")
 (import "camera.tl")
 (import "world.tl")
+(import "ui.tl")
 
 (import "game_state.tl")
 (import "items.tl")
@@ -25,12 +26,6 @@
 (extern (BeginDrawing) : unit)
 (extern (EndDrawing) : unit)
 (extern (ClearBackground [color : Color]) : unit)
-(extern (DrawText
-  [text : (Ptr u8)]
-  [posX : i32]
-  [posY : i32]
-  [fontSize : i32]
-  [color : Color]) : unit)
 (extern (IsKeyDown [key : i32]) : bool)
 (extern (GetFrameTime) : f32)
 (extern (CloseWindow) : unit)
@@ -50,6 +45,8 @@
 
 (define KEY_ENTER : i32
   (cast 257 : i32))
+(define KEY_P : i32
+  (cast 80 : i32))
 
 ;; Generate level for current world/level: WFC, biome, enemies, coins, timer
 (define (generate-current-level) : unit
@@ -97,16 +94,16 @@
 (define TILE-F : f32
   (cast TILE-SIZE : f32))
 
-(define (draw) : unit
+(define (draw-gameplay) : unit
   (begin
-    (BeginDrawing)
-    (ClearBackground (biome-background-color))
     ;; Draw visible tiles only (cull off-screen)
     (let
       [start-col : i64 (floor-div (cast camera-x : i64) TILE-SIZE)]
-      [end-col : i64 (+ (+ start-col (floor-div (cast SCREEN-W : i64) TILE-SIZE)) 2)]
+      [end-col : i64
+        (+ (+ start-col (floor-div (cast SCREEN-W : i64) TILE-SIZE)) 2)]
       [start-row : i64 (floor-div (cast camera-y : i64) TILE-SIZE)]
-      [end-row : i64 (+ (+ start-row (floor-div (cast SCREEN-H : i64) TILE-SIZE)) 2)]
+      [end-row : i64
+        (+ (+ start-row (floor-div (cast SCREEN-H : i64) TILE-SIZE)) 2)]
       (begin
         (when (< start-col 0) (set! start-col 0))
         (when (> end-col LEVEL-COLS) (set! end-col LEVEL-COLS))
@@ -171,7 +168,7 @@
           (set! i (+ i 1)))))
     ;; Draw player
     (draw-player px py TILE-F)
-    ;; HUD: title + world/level + score + lives + time
+    ;; HUD
     (DrawText
       (ffi-cstr "tl-platformer")
       (cast 12 : i32)
@@ -196,51 +193,62 @@
       (cast 72 : i32)
       (cast 16 : i32)
       (Color (cast 30 : u8) (cast 30 : u8) (cast 30 : u8) (cast 255 : u8)))
-    ;; Level complete overlay
-    (when (is-level-complete?)
+))
+(define (draw) : unit
+(begin
+    (BeginDrawing)
+    (if (is-title?)
       (begin
-        (DrawText
-          (ffi-cstr "LEVEL COMPLETE")
-          (cast 180 : i32)
-          (cast 200 : i32)
-          (cast 40 : i32)
-          (Color (cast 50 : u8) (cast 200 : u8) (cast 50 : u8) (cast 255 : u8)))
-        (DrawText
-          (ffi-cstr "Press ENTER to continue")
-          (cast 200 : i32)
-          (cast 260 : i32)
-          (cast 20 : i32)
-          (Color (cast 30 : u8) (cast 30 : u8) (cast 30 : u8) (cast 255 : u8)))))
-    ;; World complete overlay
-    (when (is-world-complete?)
+        (ClearBackground (Color (cast 20 : u8) (cast 20 : u8) (cast 30 : u8) (cast 255 : u8)))
+        (draw-title-screen (cast LEVEL-COLS : i64) (cast LEVEL-ROWS : i64)))
       (begin
-        (DrawText
-          (ffi-cstr "WORLD COMPLETE")
-          (cast 180 : i32)
-          (cast 200 : i32)
-          (cast 40 : i32)
-          (Color (cast 50 : u8) (cast 200 : u8) (cast 50 : u8) (cast 255 : u8)))
-        (DrawText
-          (ffi-cstr "Press ENTER for next world")
-          (cast 190 : i32)
-          (cast 260 : i32)
-          (cast 20 : i32)
-          (Color (cast 30 : u8) (cast 30 : u8) (cast 30 : u8) (cast 255 : u8)))))
-    ;; Game over overlay
-    (when (is-game-over?)
-      (begin
-        (DrawText
-          (ffi-cstr "GAME OVER")
-          (cast 200 : i32)
-          (cast 200 : i32)
-          (cast 40 : i32)
-          (Color (cast 200 : u8) (cast 50 : u8) (cast 50 : u8) (cast 255 : u8)))
-        (DrawText
-          (ffi-cstr "Press R to restart")
-          (cast 220 : i32)
-          (cast 260 : i32)
-          (cast 20 : i32)
-          (Color (cast 30 : u8) (cast 30 : u8) (cast 30 : u8) (cast 255 : u8)))))
+        (ClearBackground (biome-background-color))
+        (draw-gameplay)
+        (when (is-paused?)
+          (draw-pause-screen SCREEN-W SCREEN-H))
+        (when (is-level-complete?)
+          (begin
+            (DrawText
+              (ffi-cstr "LEVEL COMPLETE")
+              (cast 180 : i32)
+              (cast 200 : i32)
+              (cast 40 : i32)
+              (Color (cast 50 : u8) (cast 200 : u8) (cast 50 : u8) (cast 255 : u8)))
+            (DrawText
+              (ffi-cstr "Press ENTER to continue")
+              (cast 200 : i32)
+              (cast 260 : i32)
+              (cast 20 : i32)
+              (Color (cast 30 : u8) (cast 30 : u8) (cast 30 : u8) (cast 255 : u8)))))
+        (when (is-world-complete?)
+          (begin
+            (DrawText
+              (ffi-cstr "WORLD COMPLETE")
+              (cast 180 : i32)
+              (cast 200 : i32)
+              (cast 40 : i32)
+              (Color (cast 50 : u8) (cast 200 : u8) (cast 50 : u8) (cast 255 : u8)))
+            (DrawText
+              (ffi-cstr "Press ENTER for next world")
+              (cast 190 : i32)
+              (cast 260 : i32)
+              (cast 20 : i32)
+              (Color (cast 30 : u8) (cast 30 : u8) (cast 30 : u8) (cast 255 : u8)))))
+        (when (is-game-over?)
+          (begin
+            (DrawText
+              (ffi-cstr "GAME OVER")
+              (cast 200 : i32)
+              (cast 200 : i32)
+              (cast 40 : i32)
+              (Color (cast 200 : u8) (cast 50 : u8) (cast 50 : u8) (cast 255 : u8)))
+            (DrawText
+              (ffi-cstr "Press R to restart")
+              (cast 220 : i32)
+              (cast 260 : i32)
+              (cast 20 : i32)
+              (Color (cast 30 : u8) (cast 30 : u8) (cast 30 : u8) (cast 255 : u8)))))))
+    (draw-fade (get-fade-alpha) SCREEN-W SCREEN-H)
     (EndDrawing)))
 
 (define (main) : i64
@@ -272,7 +280,7 @@
     (mushrooms-init)
     (oneups-init)
     (score-reset)
-    (game-reset)
+    (set-title-screen)
     (set! question-hits 0)
     ;; Initialize camera centered on player start
     (camera-init START-X START-Y SCREEN-W-F SCREEN-H-F)
