@@ -9,6 +9,7 @@
 (import "game_state.tl")
 (import "items.tl")
 (import "enemies.tl")
+(import "level_progression.tl")
 
 ;; Counter for question block hits (every 5th spawns a 1-UP)
 (define question-hits : i64
@@ -46,6 +47,52 @@
 
 (define KEY_B : i32
   (cast 66 : i32))
+
+(define KEY_ENTER : i32
+  (cast 257 : i32))
+
+;; Generate level for current world/level: WFC, biome, enemies, coins, timer
+(define (generate-current-level) : unit
+  (begin
+    ;; Generate level using WFC with deterministic seed from progression
+    (let
+      [seed : i64 (level-seed)]
+      [wfc-success : bool (wfc-generate wfc-grid LEVEL-COLS LEVEL-ROWS seed)]
+      (begin
+        (if wfc-success
+          (wfc-to-level wfc-grid level LEVEL-COLS LEVEL-ROWS)
+          (begin
+            ;; Fallback: clear level and create simple ground
+            (let
+              [i : i64 0]
+              (while (< i LEVEL-SIZE)
+                (begin
+                  (array-set! level i 0)
+                  (set! i (+ i 1)))))
+            (let
+              [c : i64 0]
+              (while (< c LEVEL-COLS)
+                (begin
+                  (array-set! level (level-idx (- LEVEL-ROWS 1) c) 1)
+                  (set! c (+ c 1)))))))))
+    ;; Set biome for this level
+    (set! current-biome (current-level-biome))
+    ;; Spawn enemies with difficulty-scaled spacing
+    (enemies-spawn-in-level-with-spacing level LEVEL-COLS LEVEL-ROWS (level-enemy-spacing))
+    ;; Spawn coins and secrets
+    (coins-spawn-in-level level LEVEL-COLS LEVEL-ROWS)
+    (coins-spawn-secrets level LEVEL-COLS LEVEL-ROWS)
+    ;; Reset items
+    (mushrooms-init)
+    (oneups-init)
+    (set! question-hits 0)
+    ;; Reset player and camera
+    (player-reset)
+    (camera-init START-X START-Y SCREEN-W-F SCREEN-H-F)
+    ;; Set timer for this level
+    (apply-timer-duration (level-timer-duration))
+    ;; Reset game state to playing
+    (start-new-level)))
 
 (define TILE-F : f32
   (cast TILE-SIZE : f32))
@@ -124,7 +171,7 @@
           (set! i (+ i 1)))))
     ;; Draw player
     (draw-player px py TILE-F)
-    ;; HUD: title + score + lives + time
+    ;; HUD: title + world/level + score + lives + time
     (DrawText
       (ffi-cstr "tl-platformer")
       (cast 12 : i32)
@@ -149,6 +196,36 @@
       (cast 72 : i32)
       (cast 16 : i32)
       (Color (cast 30 : u8) (cast 30 : u8) (cast 30 : u8) (cast 255 : u8)))
+    ;; Level complete overlay
+    (when (is-level-complete?)
+      (begin
+        (DrawText
+          (ffi-cstr "LEVEL COMPLETE")
+          (cast 180 : i32)
+          (cast 200 : i32)
+          (cast 40 : i32)
+          (Color (cast 50 : u8) (cast 200 : u8) (cast 50 : u8) (cast 255 : u8)))
+        (DrawText
+          (ffi-cstr "Press ENTER to continue")
+          (cast 200 : i32)
+          (cast 260 : i32)
+          (cast 20 : i32)
+          (Color (cast 30 : u8) (cast 30 : u8) (cast 30 : u8) (cast 255 : u8)))))
+    ;; World complete overlay
+    (when (is-world-complete?)
+      (begin
+        (DrawText
+          (ffi-cstr "WORLD COMPLETE")
+          (cast 180 : i32)
+          (cast 200 : i32)
+          (cast 40 : i32)
+          (Color (cast 50 : u8) (cast 200 : u8) (cast 50 : u8) (cast 255 : u8)))
+        (DrawText
+          (ffi-cstr "Press ENTER for next world")
+          (cast 190 : i32)
+          (cast 260 : i32)
+          (cast 20 : i32)
+          (Color (cast 30 : u8) (cast 30 : u8) (cast 30 : u8) (cast 255 : u8)))))
     ;; Game over overlay
     (when (is-game-over?)
       (begin

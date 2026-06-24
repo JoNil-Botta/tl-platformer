@@ -1,6 +1,7 @@
 (import "stdlib/ffi.tl")
 (import "physics.tl")
 (import "world.tl")
+(import "player.tl")
 
 ;; Enemy system: simple patrol enemies
 ;; Enemies walk back and forth, turn at walls and edges
@@ -169,13 +170,12 @@
             (set! i (+ i 1)))))
       result)))
 
-;; Spawn enemies along the level ground
-;; Places enemies at random-ish intervals, skipping start and goal zones
-(define (enemies-spawn-in-level [level : (Array i64)] [cols : i64] [rows : i64]) : unit
+;; Spawn enemies along the level ground with custom spacing
+;; spacing: minimum columns between enemy spawns (smaller = more enemies)
+(define (enemies-spawn-in-level-with-spacing [level : (Array i64)] [cols : i64] [rows : i64] [spacing : i64]) : unit
   (begin
     (enemies-init)
     (let
-      [spacing : i64 10]
       [last-col : i64 0]
       [col : i64 5]
       (while (< col (- cols 5))
@@ -194,3 +194,8 @@
                       (enemy-spawn ex ey))
                     (set! last-col col))))))
           (set! col (+ col 1)))))))
+
+;; Spawn enemies along the level ground with default spacing
+;; Places enemies at regular intervals, skipping start and goal zones
+(define (enemies-spawn-in-level [level : (Array i64)] [cols : i64] [rows : i64]) : unit
+  (enemies-spawn-in-level-with-spacing level cols rows (cast 10 : i64)))
