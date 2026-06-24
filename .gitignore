@@ -13,3 +13,6 @@ test_items
 test_camera
 test_world
 test_game_state
+test_level_progression
+test_wfc
+test_biomes

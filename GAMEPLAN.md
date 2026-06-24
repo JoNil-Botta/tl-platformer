@@ -24,6 +24,24 @@ Side-scrolling platformer with:
 - [x] Coyote time, jump buffering, variable jump height
 - [x] `tests/test_player.tl` — 11 tests (movement, jump, coyote, buffer, variable)
 - [x] `tests/test_physics.tl` — 11 tests (collision, wall, ground, ceiling, floor-div)
+- [x] Camera smooth follow with lookahead
+- [x] World/level scrolling and tile culling
+- [x] `tests/test_camera.tl` and `tests/test_world.tl`
+- [x] Enemies with patrol AI, stomp mechanics, spawn system
+- [x] `tests/test_enemies.tl`
+- [x] Coins, score, lives system, game over
+- [x] `tests/test_items.tl`, `tests/test_game_state.tl`
+- [x] WFC expanded: multiple tile types, pipes, bricks, question blocks, secrets
+- [x] `tests/test_wfc.tl`
+- [x] Biomes: overworld, underground, castle with biome-specific colors
+- [x] `tests/test_biomes.tl`
+- [x] Level progression: 1-1 through 1-4, deterministic seeds, biome assignment, difficulty scaling
+- [x] `tests/test_level_progression.tl` — 12 tests
+- [ ] World map between levels
+- [ ] Audio (jump, coin, stomp, music)
+- [ ] Particles, screen shake, transitions
+- [ ] HUD with world/level indicator
+- [ ] Title screen, pause menu, high scores
 
 ## Phase 1: Solid Foundation (Complete)
 
@@ -82,8 +100,8 @@ Side-scrolling platformer with:
 - [x] Biome-specific tilesets and background colors
 
 ### Level Progression
-- [ ] Sequence of levels: 1-1, 1-2, 1-3, 1-4 (castle)
-- [ ] Difficulty scaling: more enemies, harder platforming
+- [x] Sequence of levels: 1-1, 1-2, 1-3, 1-4 (castle)
+- [x] Difficulty scaling: more enemies, harder platforming
 - [ ] World map (simple node graph between levels)
 
 ## Phase 4: Polish
