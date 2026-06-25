@@ -140,7 +140,7 @@
     (assert-false
       (next-level)
       "next-level should return false after level 4")
-    (assert-true
+    (assert-i64-eq
       current-level
       5
       "current-level should be 5 after completing all levels")

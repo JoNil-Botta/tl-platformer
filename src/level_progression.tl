@@ -3,7 +3,6 @@
 ;; Level progression system
 ;; Tracks world/level sequence, difficulty scaling, and biome assignment
 ;; Levels: 1-1 (overworld), 1-2 (underground), 1-3 (overworld), 1-4 (castle)
-
 ;; Current world (1+)
 (define current-world : i64
   (cast 1 : i64))
@@ -23,13 +22,10 @@
 ;; Biome assignments per level
 (define LEVEL-1-BIOME : i64
   (cast 0 : i64))
-
 (define LEVEL-2-BIOME : i64
   (cast 1 : i64))
-
 (define LEVEL-3-BIOME : i64
   (cast 0 : i64))
-
 (define LEVEL-4-BIOME : i64
   (cast 2 : i64))
 
@@ -59,10 +55,7 @@
 ;; Get timer duration for the current level (seconds)
 ;; Harder levels get slightly more time, castle gets most
 (define (level-timer-duration) : f64
-  (cond
-    [(= current-level 4) 360.0]
-    [(= current-level 2) 330.0]
-    [else 300.0]))
+  (cond [(= current-level 4) 360.0] [(= current-level 2) 330.0] [else 300.0]))
 
 ;; Advance to the next level
 ;; Returns true if there are more levels in this world, false if world complete
@@ -71,7 +64,9 @@
     (begin
       (set! current-level (+ current-level 1))
       true)
-    false))
+    (begin
+      (set! current-level (+ current-level 1))
+      false)))
 
 ;; Reset to start of current world (level 1)
 (define (reset-world) : unit
@@ -85,7 +80,7 @@
 
 ;; Check if all levels in current world are complete
 (define (is-world-finished?) : bool
-  (> current-level LEVELS-PER-WORLD))
+  (>= current-level LEVELS-PER-WORLD))
 
 ;; Reset all progression (new game)
 (define (reset-progression) : unit

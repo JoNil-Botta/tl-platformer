@@ -6,7 +6,6 @@
 (import "camera.tl")
 (import "world.tl")
 (import "ui.tl")
-
 (import "game_state.tl")
 (import "items.tl")
 (import "enemies.tl")
@@ -20,6 +19,10 @@
 (define biome-cooldown : f64
   0.0)
 
+;; Pending transition for fade system (0=none, 1=start, 2=next-level, 3=next-world, 4=restart)
+(define pending-transition : i64
+  (cast 0 : i64))
+
 (extern (InitWindow [width : i32] [height : i32] [title : (Ptr u8)]) : unit)
 (extern (SetTargetFPS [fps : i32]) : unit)
 (extern (WindowShouldClose) : bool)
@@ -27,6 +30,7 @@
 (extern (EndDrawing) : unit)
 (extern (ClearBackground [color : Color]) : unit)
 (extern (IsKeyDown [key : i32]) : bool)
+(extern (IsKeyPressed [key : i32]) : bool)
 (extern (GetFrameTime) : f32)
 (extern (CloseWindow) : unit)
 
@@ -36,13 +40,10 @@
   (cast 263 : i32))
 (define KEY_SPACE : i32
   (cast 32 : i32))
-
 (define KEY_R : i32
   (cast 82 : i32))
-
 (define KEY_B : i32
   (cast 66 : i32))
-
 (define KEY_ENTER : i32
   (cast 257 : i32))
 (define KEY_P : i32
@@ -75,7 +76,11 @@
     ;; Set biome for this level
     (set! current-biome (current-level-biome))
     ;; Spawn enemies with difficulty-scaled spacing
-    (enemies-spawn-in-level-with-spacing level LEVEL-COLS LEVEL-ROWS (level-enemy-spacing))
+    (enemies-spawn-in-level-with-spacing
+      level
+      LEVEL-COLS
+      LEVEL-ROWS
+      (level-enemy-spacing))
     ;; Spawn coins and secrets
     (coins-spawn-in-level level LEVEL-COLS LEVEL-ROWS)
     (coins-spawn-secrets level LEVEL-COLS LEVEL-ROWS)
@@ -88,8 +93,8 @@
     (camera-init START-X START-Y SCREEN-W-F SCREEN-H-F)
     ;; Set timer for this level
     (apply-timer-duration (level-timer-duration))
-    ;; Reset game state to playing
-    (start-new-level)))
+    ;; NOTE: caller must set game state (e.g., start-new-level or fade)
+    unit))
 
 (define TILE-F : f32
   (cast TILE-SIZE : f32))
@@ -133,7 +138,8 @@
         (begin
           (let
             [e : Enemy (array-ref enemies i)]
-            (when (struct-get e alive)
+            (when
+              (struct-get e alive)
               (draw-enemy (struct-get e x) (struct-get e y) TILE-F)))
           (set! i (+ i 1)))))
     ;; Draw visible mushrooms
@@ -143,7 +149,8 @@
         (begin
           (let
             [m : Mushroom (array-ref mushrooms i)]
-            (when (struct-get m active)
+            (when
+              (struct-get m active)
               (draw-mushroom (struct-get m x) (struct-get m y))))
           (set! i (+ i 1)))))
     ;; Draw visible coins
@@ -153,7 +160,8 @@
         (begin
           (let
             [c : Coin (array-ref coins i)]
-            (when (struct-get c active)
+            (when
+              (struct-get c active)
               (draw-coin (struct-get c x) (struct-get c y))))
           (set! i (+ i 1)))))
     ;; Draw visible 1-UP mushrooms
@@ -163,7 +171,8 @@
         (begin
           (let
             [o : OneUp (array-ref oneups i)]
-            (when (struct-get o active)
+            (when
+              (struct-get o active)
               (draw-oneup (struct-get o x) (struct-get o y))))
           (set! i (+ i 1)))))
     ;; Draw player
@@ -192,62 +201,89 @@
       (cast 12 : i32)
       (cast 72 : i32)
       (cast 16 : i32)
-      (Color (cast 30 : u8) (cast 30 : u8) (cast 30 : u8) (cast 255 : u8)))
-))
+      (Color (cast 30 : u8) (cast 30 : u8) (cast 30 : u8) (cast 255 : u8)))))
+
 (define (draw) : unit
-(begin
+  (begin
     (BeginDrawing)
     (if (is-title?)
       (begin
-        (ClearBackground (Color (cast 20 : u8) (cast 20 : u8) (cast 30 : u8) (cast 255 : u8)))
+        (ClearBackground
+          (Color (cast 20 : u8) (cast 20 : u8) (cast 30 : u8) (cast 255 : u8)))
         (draw-title-screen (cast LEVEL-COLS : i64) (cast LEVEL-ROWS : i64)))
       (begin
         (ClearBackground (biome-background-color))
         (draw-gameplay)
-        (when (is-paused?)
-          (draw-pause-screen SCREEN-W SCREEN-H))
-        (when (is-level-complete?)
+        (when (is-paused?) (draw-pause-screen SCREEN-W SCREEN-H))
+        (when
+          (is-level-complete?)
           (begin
             (DrawText
               (ffi-cstr "LEVEL COMPLETE")
               (cast 180 : i32)
               (cast 200 : i32)
               (cast 40 : i32)
-              (Color (cast 50 : u8) (cast 200 : u8) (cast 50 : u8) (cast 255 : u8)))
+              (Color
+                (cast 50 : u8)
+                (cast 200 : u8)
+                (cast 50 : u8)
+                (cast 255 : u8)))
             (DrawText
               (ffi-cstr "Press ENTER to continue")
               (cast 200 : i32)
               (cast 260 : i32)
               (cast 20 : i32)
-              (Color (cast 30 : u8) (cast 30 : u8) (cast 30 : u8) (cast 255 : u8)))))
-        (when (is-world-complete?)
+              (Color
+                (cast 30 : u8)
+                (cast 30 : u8)
+                (cast 30 : u8)
+                (cast 255 : u8)))))
+        (when
+          (is-world-complete?)
           (begin
             (DrawText
               (ffi-cstr "WORLD COMPLETE")
               (cast 180 : i32)
               (cast 200 : i32)
               (cast 40 : i32)
-              (Color (cast 50 : u8) (cast 200 : u8) (cast 50 : u8) (cast 255 : u8)))
+              (Color
+                (cast 50 : u8)
+                (cast 200 : u8)
+                (cast 50 : u8)
+                (cast 255 : u8)))
             (DrawText
               (ffi-cstr "Press ENTER for next world")
               (cast 190 : i32)
               (cast 260 : i32)
               (cast 20 : i32)
-              (Color (cast 30 : u8) (cast 30 : u8) (cast 30 : u8) (cast 255 : u8)))))
-        (when (is-game-over?)
+              (Color
+                (cast 30 : u8)
+                (cast 30 : u8)
+                (cast 30 : u8)
+                (cast 255 : u8)))))
+        (when
+          (is-game-over?)
           (begin
             (DrawText
               (ffi-cstr "GAME OVER")
               (cast 200 : i32)
               (cast 200 : i32)
               (cast 40 : i32)
-              (Color (cast 200 : u8) (cast 50 : u8) (cast 50 : u8) (cast 255 : u8)))
+              (Color
+                (cast 200 : u8)
+                (cast 50 : u8)
+                (cast 50 : u8)
+                (cast 255 : u8)))
             (DrawText
               (ffi-cstr "Press R to restart")
               (cast 220 : i32)
               (cast 260 : i32)
               (cast 20 : i32)
-              (Color (cast 30 : u8) (cast 30 : u8) (cast 30 : u8) (cast 255 : u8)))))))
+              (Color
+                (cast 30 : u8)
+                (cast 30 : u8)
+                (cast 30 : u8)
+                (cast 255 : u8)))))))
     (draw-fade (get-fade-alpha) SCREEN-W SCREEN-H)
     (EndDrawing)))
 
@@ -255,7 +291,8 @@
   (begin
     ;; Generate level using WFC with fixed seed (vary per level later)
     (let
-      [wfc-success : bool (wfc-generate wfc-grid LEVEL-COLS LEVEL-ROWS (cast 42 : i64))]
+      [wfc-success : bool
+        (wfc-generate wfc-grid LEVEL-COLS LEVEL-ROWS (cast 42 : i64))]
       (begin
         (if wfc-success
           (wfc-to-level wfc-grid level LEVEL-COLS LEVEL-ROWS)
@@ -295,92 +332,154 @@
         (let
           [dt : f64 (cast (GetFrameTime) : f64)]
           (begin
-            (when (is-playing?)
-              (begin
-                (player-update
-              dt
-              (IsKeyDown KEY_LEFT)
-              (IsKeyDown KEY_RIGHT)
-              (IsKeyDown KEY_SPACE)
-              level
-              LEVEL-COLS
-              LEVEL-ROWS)
-            (update-player-anim dt vx vy on-ground)
-            (camera-update
-              dt
-              px
-              py
-              vx
-              SCREEN-W-F
-              SCREEN-H-F
-              WORLD-W
-              WORLD-H)
-            (enemies-update dt level LEVEL-COLS LEVEL-ROWS)
-            (mushrooms-update dt level LEVEL-COLS LEVEL-ROWS)
-            ;; Check for question block hit and spawn mushroom or 1-UP
-            (when player-hit-ceiling
-              (begin
-                (when (hit-question-block level LEVEL-COLS LEVEL-ROWS px py)
-                  (begin
-                    (set! question-hits (+ question-hits 1))
-                    (if (= (% question-hits 5) 0)
-                      (oneup-spawn px (- py (* TILE-SIZE-F 1.5)))
-                      (mushroom-spawn px (- py (* TILE-SIZE-F 1.5))))
-                    unit))
-                unit))
-            (set! player-hit-ceiling false)
-            ;; Check coin collection
-            (coins-collect px py)
-            ;; Check mushroom collection
-            (mushrooms-collect px py)
-            ;; Check 1-UP collection
-            (oneups-collect px py)
-            ;; Update 1-UP mushrooms
-            (oneups-update dt level LEVEL-COLS LEVEL-ROWS)
-            ;; Update timer
-            (let
-              [time-out : bool (timer-update dt)]
-              (when time-out
+            ;; Update fade transitions
+            (when (is-fading-out?)
+              (when (update-fade dt)
                 (begin
-                  (player-die)
-                  unit)))
-            ;; Check player-enemy collision
-            (let
-              [collision : i64 (player-enemy-collide px py vy)]
-              (begin
-                (when (= collision 1)
-                  ;; Stomp: bounce player up
-                  (set! vy (* JUMP-VEL 0.5)))
-                (when (= collision 2)
-                  ;; Side hit: player dies
-                  (begin
-                    (player-die)
-                    unit))))
-            ;; Check for pit death
-            (when (> py WORLD-H)
-              (begin
-                (player-die)
-                unit))
-            ;; Check for goal
-            (when (reached-goal? px py)
-              (begin
-                (set! score (+ score (timer-bonus)))
-                (player-reset)))))
-            ;; Reset / restart on R key
-            (when (IsKeyDown KEY_R)
-              (begin
-                (mushrooms-init)
-                (oneups-init)
-                (if (is-game-over?)
-                  (game-reset)
-                  (player-reset))
-                (set! question-hits 0)))
+                  ;; Fade out complete — execute pending transition
+                  (cond
+                    [(= pending-transition 1)
+                     (begin
+                       (generate-current-level)
+                       (start-fade-in))]
+                    [(= pending-transition 2)
+                     (begin
+                       (generate-current-level)
+                       (start-fade-in))]
+                    [(= pending-transition 3)
+                     (begin
+                       (next-world)
+                       (generate-current-level)
+                       (start-fade-in))]
+                    [(= pending-transition 4)
+                     (begin
+                       (reset-progression)
+                       (game-reset)
+                       (score-reset)
+                       (generate-current-level)
+                       (start-fade-in))]
+                    [else unit])
+                  (set! pending-transition 0))))
+            (when (is-fading-in?)
+              (when (update-fade dt)
+                (start-new-level)))
+            ;; State-specific update and input
+            (cond
+              [(is-title?)
+               (when (IsKeyPressed KEY_ENTER)
+                 (begin
+                   (reset-progression)
+                   (score-reset)
+                   (set! lives START-LIVES)
+                   (set! pending-transition 1)
+                   (start-fade-out)))]
+              [(is-playing?)
+               (begin
+                 (when (IsKeyPressed KEY_P)
+                   (pause-game))
+                 (player-update
+                   dt
+                   (IsKeyDown KEY_LEFT)
+                   (IsKeyDown KEY_RIGHT)
+                   (IsKeyDown KEY_SPACE)
+                   level
+                   LEVEL-COLS
+                   LEVEL-ROWS)
+                 (update-player-anim dt vx vy on-ground)
+                 (camera-update
+                   dt
+                   px
+                   py
+                   vx
+                   SCREEN-W-F
+                   SCREEN-H-F
+                   WORLD-W
+                   WORLD-H)
+                 (enemies-update dt level LEVEL-COLS LEVEL-ROWS)
+                 (mushrooms-update dt level LEVEL-COLS LEVEL-ROWS)
+                 ;; Check for question block hit and spawn mushroom or 1-UP
+                 (when player-hit-ceiling
+                   (begin
+                     (when (hit-question-block level LEVEL-COLS LEVEL-ROWS px py)
+                       (begin
+                         (set! question-hits (+ question-hits 1))
+                         (if (= (% question-hits 5) 0)
+                           (oneup-spawn px (- py (* TILE-SIZE-F 1.5)))
+                           (mushroom-spawn px (- py (* TILE-SIZE-F 1.5))))
+                         unit))
+                     unit))
+                 (set! player-hit-ceiling false)
+                 ;; Check coin collection
+                 (coins-collect px py)
+                 ;; Check mushroom collection
+                 (mushrooms-collect px py)
+                 ;; Check 1-UP collection
+                 (oneups-collect px py)
+                 ;; Update 1-UP mushrooms
+                 (oneups-update dt level LEVEL-COLS LEVEL-ROWS)
+                 ;; Update timer
+                 (let
+                   [time-out : bool (timer-update dt)]
+                   (when time-out
+                     (begin
+                       (player-die)
+                       unit)))
+                 ;; Check player-enemy collision
+                 (let
+                   [collision : i64 (player-enemy-collide px py vy)]
+                   (begin
+                     (when (= collision 1)
+                       ;; Stomp: bounce player up
+                       (set! vy (* JUMP-VEL 0.5)))
+                     (when (= collision 2)
+                       ;; Side hit: player dies
+                       (begin
+                         (player-die)
+                         unit))))
+                 ;; Check for pit death
+                 (when (> py WORLD-H)
+                   (begin
+                     (player-die)
+                     unit))
+                 ;; Check for goal
+                 (when (reached-goal? px py)
+                   (begin
+                     (set! score (+ score (timer-bonus)))
+                     (if (< current-level LEVELS-PER-WORLD)
+                       (level-complete)
+                       (world-complete)))))]
+              [(is-paused?)
+               (when (IsKeyPressed KEY_P)
+                 (resume-game))]
+              [(is-level-complete?)
+               (begin
+                 (update-level-transition dt)
+                 (when (IsKeyPressed KEY_ENTER)
+                   (begin
+                     (next-level)
+                     (set! pending-transition 2)
+                     (start-fade-out))))]
+              [(is-world-complete?)
+               (begin
+                 (update-level-transition dt)
+                 (when (IsKeyPressed KEY_ENTER)
+                   (begin
+                     (set! pending-transition 3)
+                     (start-fade-out))))]
+              [(is-game-over?)
+               (when (IsKeyPressed KEY_R)
+                 (begin
+                   (set! pending-transition 4)
+                   (start-fade-out)))]
+              [else unit])
             ;; Cycle biome on B key with cooldown
-            (when (and (IsKeyDown KEY_B) (<= biome-cooldown 0.0))
+            (when
+              (and (IsKeyDown KEY_B) (<= biome-cooldown 0.0))
               (begin
                 (set! current-biome (% (+ current-biome 1) 3))
                 (set! biome-cooldown 0.2)))
-            (when (> biome-cooldown 0.0)
+            (when
+              (> biome-cooldown 0.0)
               (set! biome-cooldown (- biome-cooldown dt)))))
         (draw)))
     (unload-assets)
