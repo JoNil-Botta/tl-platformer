@@ -10,6 +10,7 @@
 (import "items.tl")
 (import "enemies.tl")
 (import "level_progression.tl")
+(import "screen_shake.tl")
 
 ;; Counter for question block hits (every 5th spawns a 1-UP)
 (define question-hits : i64
@@ -287,6 +288,10 @@
     (draw-fade (get-fade-alpha) SCREEN-W SCREEN-H)
     (EndDrawing)))
 
+;; Track previous frame's on-ground for landing detection
+(define was-on-ground : bool
+  false)
+
 (define (main) : i64
   (begin
     ;; Generate level using WFC with fixed seed (vary per level later)
@@ -321,6 +326,8 @@
     (set! question-hits 0)
     ;; Initialize camera centered on player start
     (camera-init START-X START-Y SCREEN-W-F SCREEN-H-F)
+    (set! was-on-ground false)
+    (shake-reset)
     (InitWindow
       (cast SCREEN-W : i32)
       (cast SCREEN-H : i32)
@@ -363,6 +370,8 @@
             (when (is-fading-in?)
               (when (update-fade dt)
                 (start-new-level)))
+            ;; Update screen shake
+            (update-shake dt)
             ;; State-specific update and input
             (cond
               [(is-title?)
@@ -397,6 +406,11 @@
                    WORLD-H)
                  (enemies-update dt level LEVEL-COLS LEVEL-ROWS)
                  (mushrooms-update dt level LEVEL-COLS LEVEL-ROWS)
+                 ;; Check landing from height (was in air, now on ground, moving down fast)
+                 (when
+                   (and (not was-on-ground) on-ground (> vy 200.0))
+                   (trigger-shake SHAKE-SMALL 0.15))
+                 (set! was-on-ground on-ground)
                  ;; Check for question block hit and spawn mushroom or 1-UP
                  (when player-hit-ceiling
                    (begin
@@ -429,17 +443,21 @@
                    [collision : i64 (player-enemy-collide px py vy)]
                    (begin
                      (when (= collision 1)
-                       ;; Stomp: bounce player up
-                       (set! vy (* JUMP-VEL 0.5)))
+                       ;; Stomp: bounce player up + screen shake
+                       (begin
+                         (set! vy (* JUMP-VEL 0.5))
+                         (trigger-shake SHAKE-MEDIUM 0.2)))
                      (when (= collision 2)
-                       ;; Side hit: player dies
+                       ;; Side hit: player dies + strong shake
                        (begin
                          (player-die)
+                         (trigger-shake SHAKE-LARGE 0.35)
                          unit))))
                  ;; Check for pit death
                  (when (> py WORLD-H)
                    (begin
                      (player-die)
+                     (trigger-shake SHAKE-LARGE 0.4)
                      unit))
                  ;; Check for goal
                  (when (reached-goal? px py)

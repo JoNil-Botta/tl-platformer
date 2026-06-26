@@ -1,4 +1,5 @@
 (import "stdlib/ffi.tl")
+(import "screen_shake.tl")
 
 ;; Smooth follow camera with lookahead and bounds
 ;; All values in world (pixel) coordinates
@@ -52,13 +53,13 @@
       (set! camera-x (clamp new-x 0.0 max-cam-x))
       (set! camera-y (clamp new-y 0.0 max-cam-y)))))
 
-;; Transform world x to screen x
+;; Transform world x to screen x (includes shake offset)
 (define (world-to-screen-x [wx : f64]) : f32
-  (cast (- wx camera-x) : f32))
+  (cast (- (- wx camera-x) (get-shake-x)) : f32))
 
-;; Transform world y to screen y
+;; Transform world y to screen y (includes shake offset)
 (define (world-to-screen-y [wy : f64]) : f32
-  (cast (- wy camera-y) : f32))
+  (cast (- (- wy camera-y) (get-shake-y)) : f32))
 
 ;; Check if a world rectangle is visible on screen
 (define (is-visible [wx : f64] [wy : f64] [ww : f64] [wh : f64] [screen-w : f64] [screen-h : f64]) : bool

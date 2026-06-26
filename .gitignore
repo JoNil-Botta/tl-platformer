@@ -16,3 +16,4 @@ test_game_state
 test_level_progression
 test_wfc
 test_biomes
+test_screen_shake
