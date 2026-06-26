@@ -11,6 +11,7 @@
 (import "enemies.tl")
 (import "level_progression.tl")
 (import "screen_shake.tl")
+(import "particles.tl")
 
 ;; Counter for question block hits (every 5th spawns a 1-UP)
 (define question-hits : i64
@@ -88,6 +89,7 @@
     ;; Reset items
     (mushrooms-init)
     (oneups-init)
+    (particles-init)
     (set! question-hits 0)
     ;; Reset player and camera
     (player-reset)
@@ -178,6 +180,8 @@
           (set! i (+ i 1)))))
     ;; Draw player
     (draw-player px py TILE-F)
+    ;; Draw particles (on top of gameplay, below HUD)
+    (draw-particles)
     ;; HUD
     (DrawText
       (ffi-cstr "tl-platformer")
@@ -406,10 +410,13 @@
                    WORLD-H)
                  (enemies-update dt level LEVEL-COLS LEVEL-ROWS)
                  (mushrooms-update dt level LEVEL-COLS LEVEL-ROWS)
+                 (particles-update dt)
                  ;; Check landing from height (was in air, now on ground, moving down fast)
                  (when
                    (and (not was-on-ground) on-ground (> vy 200.0))
-                   (trigger-shake SHAKE-SMALL 0.15))
+                   (begin
+                     (trigger-shake SHAKE-SMALL 0.15)
+                     (spawn-dust px py)))
                  (set! was-on-ground on-ground)
                  ;; Check for question block hit and spawn mushroom or 1-UP
                  (when player-hit-ceiling
@@ -424,7 +431,10 @@
                      unit))
                  (set! player-hit-ceiling false)
                  ;; Check coin collection
-                 (coins-collect px py)
+                 (let
+                   [coins-collected : i64 (coins-collect px py)]
+                   (when (> coins-collected 0)
+                     (spawn-coin-sparkle px py)))
                  ;; Check mushroom collection
                  (mushrooms-collect px py)
                  ;; Check 1-UP collection
@@ -443,10 +453,11 @@
                    [collision : i64 (player-enemy-collide px py vy)]
                    (begin
                      (when (= collision 1)
-                       ;; Stomp: bounce player up + screen shake
+                       ;; Stomp: bounce player up + screen shake + particles
                        (begin
                          (set! vy (* JUMP-VEL 0.5))
-                         (trigger-shake SHAKE-MEDIUM 0.2)))
+                         (trigger-shake SHAKE-MEDIUM 0.2)
+                         (spawn-stomp-burst px py)))
                      (when (= collision 2)
                        ;; Side hit: player dies + strong shake
                        (begin
