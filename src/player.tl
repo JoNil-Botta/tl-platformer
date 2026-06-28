@@ -41,9 +41,9 @@
   false)
 
 ;; Reset player to start position
-(define (player-reset) : unit
+(define (player-reset [start-x : f64]) : unit
   (begin
-    (set! px START-X)
+    (set! px start-x)
     (set! py START-Y)
     (set! vx 0.0)
     (set! vy 0.0)

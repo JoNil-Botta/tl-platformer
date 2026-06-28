@@ -14,6 +14,30 @@
 (import "particles.tl")
 (import "audio.tl")
 (import "high_score.tl")
+(import "springs.tl")
+(import "piranha.tl")
+
+;; Current checkpoint X position (respawn here on death)
+(define checkpoint-x : f64
+  START-X)
+
+;; Star power-up timer (seconds, 0 = inactive)
+(define star-timer : f64
+  0.0)
+
+;; Fire flower power-up flag
+(define has-fire : bool
+  false)
+
+;; Fireball state
+(define fireball-x : f64
+  0.0)
+(define fireball-y : f64
+  0.0)
+(define fireball-vx : f64
+  0.0)
+(define fireball-active : bool
+  false)
 
 ;; Counter for question block hits (every 5th spawns a 1-UP)
 (define question-hits : i64
@@ -61,6 +85,9 @@
 (define KEY_P : i32
   (cast 80 : i32))
 
+(define KEY_S : i32
+  (cast 83 : i32))
+
 ;; Generate level for current world/level: WFC, biome, enemies, coins, timer
 (define (generate-current-level) : unit
   (begin
@@ -96,13 +123,18 @@
     ;; Spawn coins and secrets
     (coins-spawn-in-level level LEVEL-COLS LEVEL-ROWS)
     (coins-spawn-secrets level LEVEL-COLS LEVEL-ROWS)
+    (springs-spawn-in-level level LEVEL-COLS LEVEL-ROWS)
+    (piranhas-spawn-in-level level LEVEL-COLS LEVEL-ROWS)
     ;; Reset items
     (mushrooms-init)
     (oneups-init)
     (particles-init)
     (set! question-hits 0)
+    (set! star-timer 0.0)
+    (set! has-fire false)
     ;; Reset player and camera
-    (player-reset)
+    (set! checkpoint-x START-X)
+    (player-reset START-X)
     (camera-init START-X START-Y SCREEN-W-F SCREEN-H-F)
     ;; Set timer for this level
     (apply-timer-duration (level-timer-duration))
@@ -144,6 +176,8 @@
               (set! row (+ row 1)))))))
     ;; Draw goal flag
     (draw-goal GOAL-X GOAL-Y TILE-F)
+    ;; Draw visible enemies
+    (draw-piranhas)
     ;; Draw visible enemies
     (let
       [i : i64 0]
@@ -190,6 +224,26 @@
           (set! i (+ i 1)))))
     ;; Draw player
     (draw-player px py TILE-F)
+    ;; Draw fireball
+    (when fireball-active
+      (DrawRectangleRec
+        (Rectangle
+          (world-to-screen-x (- fireball-x 4.0))
+          (world-to-screen-y (- fireball-y 4.0))
+          (cast 8.0 : f32)
+          (cast 8.0 : f32))
+        (Color (cast 255 : u8) (cast 100 : u8) (cast 0 : u8) (cast 255 : u8))))
+    ;; Star power-up flash effect
+    (when (> star-timer 0.0)
+      (let
+        [flash : bool (< (% (cast star-timer : i64) 2) 1)]
+        (when flash
+          (DrawRectangle
+            (cast 0 : i32)
+            (cast 0 : i32)
+            (cast SCREEN-W : i32)
+            (cast SCREEN-H : i32)
+            (Color (cast 255 : u8) (cast 255 : u8) (cast 0 : u8) (cast 30 : u8))))))
     ;; Draw particles (on top of gameplay, below HUD)
     (draw-particles)
     ;; HUD with actual values
@@ -388,7 +442,10 @@
                     [(= pending-transition 4)
                      (begin
                        (reset-progression)
-                       (game-reset)
+                       (game-reset START-X)
+                       (set! checkpoint-x START-X)
+                       (set! star-timer 0.0)
+                       (set! has-fire false)
                        (score-reset)
                        (show-map)
                        (set! fade-alpha 0.0)
@@ -423,7 +480,9 @@
                    (begin
                      (if (player-update-death dt)
                        (begin
-                         (player-die)
+                         (player-die checkpoint-x)
+                         (set! star-timer 0.0)
+                         (set! has-fire false)
                          unit)
                        unit)
                      unit)
@@ -444,6 +503,9 @@
                        LEVEL-COLS
                        LEVEL-ROWS)
                      (set! prev-jump-input jump-now)))
+                 ;; Update checkpoint when reaching milestones (every 25% of level)
+                 (when (> px (+ checkpoint-x (* WORLD-W 0.25)))
+                   (set! checkpoint-x px))
                  (update-player-anim dt vx vy on-ground)
                  (camera-update
                    dt
@@ -456,6 +518,7 @@
                    WORLD-H)
                  (enemies-update dt level LEVEL-COLS LEVEL-ROWS)
                  (mushrooms-update dt level LEVEL-COLS LEVEL-ROWS)
+                 (piranhas-update dt)
                  (particles-update dt)
                  ;; Check landing from height (was in air, now on ground, moving down fast)
                  (when
@@ -463,8 +526,37 @@
                    (begin
                      (trigger-shake SHAKE-SMALL 0.15)
                      (spawn-dust px py)))
+                 ;; Check spring block bounce
+                 (when (and on-ground (on-spring? px py level LEVEL-COLS LEVEL-ROWS))
+                   (begin
+                     (set! vy SPRING-BOUNCE-VEL)
+                     (play-jump)))
                  (set! was-on-ground on-ground)
-                 ;; Check for question block hit and spawn mushroom or 1-UP
+                 ;; Decrement star timer
+                 (when (> star-timer 0.0)
+                   (begin
+                     (set! star-timer (- star-timer dt))
+                     (when (< star-timer 0.0)
+                       (set! star-timer 0.0))))
+                 ;; Fireball shooting
+                 (when (and has-fire (IsKeyPressed KEY_S) (not fireball-active))
+                   (begin
+                     (set! fireball-active true)
+                     (set! fireball-x px)
+                     (set! fireball-y py)
+                     (set! fireball-vx (if player-facing-right 400.0 -400.0))))
+                 ;; Update fireball
+                 (when fireball-active
+                   (begin
+                     (set! fireball-x (+ fireball-x (* fireball-vx dt)))
+                     ;; Check fireball-enemy collision
+                     (let
+                       [killed : i64 (fireball-hit-enemies fireball-x fireball-y)]
+                       (when (> killed 0)
+                         (set! fireball-active false)))
+                     (when (or (< fireball-x 0.0) (> fireball-x WORLD-W))
+                       (set! fireball-active false))))
+                 ;; Check for question block hit and spawn mushroom, 1-UP, star, or fire flower
                  (when player-hit-ceiling
                    (begin
                      (when (hit-question-block level LEVEL-COLS LEVEL-ROWS px py)
@@ -472,8 +564,20 @@
                          (play-bump)
                          (set! question-hits (+ question-hits 1))
                          (if (= (% question-hits 5) 0)
-                           (oneup-spawn px (- py (* TILE-SIZE-F 1.5)))
-                           (mushroom-spawn px (- py (* TILE-SIZE-F 1.5))))
+                           (begin
+                             (oneup-spawn px (- py (* TILE-SIZE-F 1.5)))
+                             unit)
+                           (if (and player-big (not has-fire))
+                             (begin
+                               (set! has-fire true)
+                               (play-powerup))
+                             (if (= (% question-hits 7) 0)
+                               (begin
+                                 (set! star-timer 10.0)
+                                 (play-powerup))
+                               (begin
+                                 (mushroom-spawn px (- py (* TILE-SIZE-F 1.5)))
+                                 unit))))
                          unit))
                      unit))
                  (set! player-hit-ceiling false)
@@ -501,23 +605,42 @@
                        (player-start-death)
                        unit)))
                  ;; Check player-enemy collision
-                 (let
-                   [collision : i64 (player-enemy-collide px py vy)]
-                   (begin
-                     (when (= collision 1)
-                       ;; Stomp: bounce player up + screen shake + particles + sound
-                       (begin
-                         (play-stomp)
-                         (set! vy (* JUMP-VEL 0.5))
-                         (trigger-shake SHAKE-MEDIUM 0.2)
-                         (spawn-stomp-burst px py)))
-                     (when (= collision 2)
-                       ;; Side hit: player dies + strong shake + sound
-                       (begin
-                         (play-death)
-                         (player-start-death)
-                         (trigger-shake SHAKE-LARGE 0.35)
-                         unit))))
+                 (if (> star-timer 0.0)
+                   ;; Star power: kill all touching enemies
+                   (let
+                     [killed : i64 (star-kill-enemies px py)]
+                     (when (> killed 0)
+                       (play-stomp)))
+                   ;; Normal collision
+                   (let
+                     [collision : i64 (player-enemy-collide px py vy)]
+                     (begin
+                       (when (= collision 1)
+                         ;; Stomp: bounce player up + screen shake + particles + sound
+                         (begin
+                           (play-stomp)
+                           (set! vy (* JUMP-VEL 0.5))
+                           (trigger-shake SHAKE-MEDIUM 0.2)
+                           (spawn-stomp-burst px py)))
+                       (when (= collision 2)
+                         ;; Side hit: player dies + strong shake + sound
+                         (begin
+                           (play-death)
+                           (player-start-death)
+                           (trigger-shake SHAKE-LARGE 0.35)
+                           unit)))))
+                 ;; Check piranha collision (always kills unless star active)
+                 (if (> star-timer 0.0)
+                   (let
+                     [killed : i64 (piranha-kill-on-contact px py)]
+                     (when (> killed 0)
+                       (play-stomp)))
+                   (when (= (piranhas-collide px py) 1)
+                     (begin
+                       (play-death)
+                       (player-start-death)
+                       (trigger-shake SHAKE-LARGE 0.35)
+                       unit)))
                  ;; Check for pit death
                  (when (> py WORLD-H)
                    (begin

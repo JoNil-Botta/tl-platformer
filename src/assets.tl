@@ -184,6 +184,10 @@
 (define COLOR-ONEUP : Color
   (Color (cast 60 : u8) (cast 220 : u8) (cast 60 : u8) (cast 255 : u8)))
 
+;; Spring block color
+(define COLOR-SPRING : Color
+  (Color (cast 255 : u8) (cast 50 : u8) (cast 100 : u8) (cast 255 : u8)))
+
 ;; Biome system
 (define BIOME-OVERWORLD : i64 (cast 0 : i64))
 (define BIOME-UNDERGROUND : i64 (cast 1 : i64))
@@ -277,6 +281,7 @@
     [(= tile-type 7)
      (if (= current-biome BIOME-UNDERGROUND) COLOR-UG-PIPE-BODY
        (if (= current-biome BIOME-CASTLE) COLOR-CASTLE-PIPE-BODY COLOR-PIPE-BODY))]
+    [(= tile-type 8) COLOR-SPRING]
     [else (Color (cast 255 : u8) (cast 0 : u8) (cast 255 : u8) (cast 255 : u8))]))
 
 ;; Check if a texture is loaded (id > 0)
@@ -380,6 +385,9 @@
       ;; Pipe body
       [(= tile-type 7)
        (DrawRectangleRec (Rectangle sx sy tile-size tile-size) (biome-tile-color tile-type))]
+      ;; Spring block
+      [(= tile-type 8)
+       (DrawRectangleRec (Rectangle sx sy tile-size tile-size) COLOR-SPRING)]
       [else unit])))
 
 ;; Draw the player with animation at world position (px, py)

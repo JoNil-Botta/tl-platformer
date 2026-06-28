@@ -199,3 +199,73 @@
 ;; Places enemies at regular intervals, skipping start and goal zones
 (define (enemies-spawn-in-level [level : (Array i64)] [cols : i64] [rows : i64]) : unit
   (enemies-spawn-in-level-with-spacing level cols rows (cast 10 : i64)))
+
+;; Kill all enemies touching player (for star power-up)
+;; Returns number of enemies killed
+(define (star-kill-enemies [px : f64] [py : f64]) : i64
+  (let
+    [count : i64 0]
+    [i : i64 0]
+    (begin
+      (while (< i enemy-count)
+        (let
+          [e : Enemy (array-ref enemies i)]
+          (begin
+            (when (struct-get e alive)
+              (let
+                [ex : f64 (struct-get e x)]
+                [ey : f64 (struct-get e y)]
+                [dx : f64 (- px ex)]
+                [dy : f64 (- py ey)]
+                [hw : f64 (+ PLAYER-HW ENEMY-HW)]
+                [hh : f64 (+ PLAYER-HH ENEMY-HH)]
+                (when (and (< (abs-f64 dx) hw) (< (abs-f64 dy) hh))
+                  (begin
+                    (array-set! enemies i
+                      (Enemy
+                        (struct-get e x)
+                        (struct-get e y)
+                        0.0
+                        0.0
+                        (struct-get e dir)
+                        false
+                        false))
+                    (set! score (+ score 200))
+                    (set! count (+ count 1))))))
+            (set! i (+ i 1)))))
+      count)))
+
+;; Check if fireball hits any enemy
+;; Returns number of enemies killed
+(define (fireball-hit-enemies [fx : f64] [fy : f64]) : i64
+  (let
+    [count : i64 0]
+    [i : i64 0]
+    (begin
+      (while (< i enemy-count)
+        (let
+          [e : Enemy (array-ref enemies i)]
+          (begin
+            (when (struct-get e alive)
+              (let
+                [ex : f64 (struct-get e x)]
+                [ey : f64 (struct-get e y)]
+                [dx : f64 (- fx ex)]
+                [dy : f64 (- fy ey)]
+                [hw : f64 (+ 4.0 ENEMY-HW)]
+                [hh : f64 (+ 4.0 ENEMY-HH)]
+                (when (and (< (abs-f64 dx) hw) (< (abs-f64 dy) hh))
+                  (begin
+                    (array-set! enemies i
+                      (Enemy
+                        (struct-get e x)
+                        (struct-get e y)
+                        0.0
+                        0.0
+                        (struct-get e dir)
+                        false
+                        false))
+                    (set! score (+ score 200))
+                    (set! count (+ count 1))))))
+            (set! i (+ i 1)))))
+      count)))

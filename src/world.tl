@@ -68,6 +68,10 @@
 (define TILE-PIPE-BODY : i64
   (cast 7 : i64))
 
+;; Spring block tile
+(define TILE-SPRING : i64
+  (cast 8 : i64))
+
 ;; Goal zone: flag pole position (right side of level)
 (define GOAL-X : f64
   (- WORLD-W (* TILE-SIZE-F 3.0)))

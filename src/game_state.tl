@@ -82,14 +82,14 @@
 (define (timer-bonus) : i64
   (cast (* time-remaining 10.0) : i64))
 
-;; Player dies: lose a life, respawn if lives remain, else game over
+;; Player dies: lose a life, respawn at given x if lives remain, else game over
 ;; Returns true if respawned, false if game over
-(define (player-die) : bool
+(define (player-die [respawn-x : f64]) : bool
   (begin
     (set! lives (- lives 1))
     (if (> lives 0)
       (begin
-        (player-reset)
+        (player-reset respawn-x)
         true)
       (begin
         (set! game-state STATE-GAME-OVER)
@@ -129,12 +129,12 @@
       false)))
 
 ;; Full game reset: restore lives, score, timer, player position, enemies, coins
-(define (game-reset) : unit
+(define (game-reset [respawn-x : f64]) : unit
   (begin
     (set! lives START-LIVES)
     (set! game-state STATE-PLAYING)
     (timer-reset)
-    (player-reset)))
+    (player-reset respawn-x)))
 
 ;; Start a new level: reset state but keep lives and score
 (define (start-new-level) : unit

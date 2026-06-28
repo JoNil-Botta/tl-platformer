@@ -20,6 +20,10 @@
 (define PLAYER-HH : f64
   14.0)
 
+;; Abs helper for f64
+(define (abs-f64 [x : f64]) : f64
+  (if (< x 0.0) (- 0.0 x) x))
+
 ;; Check if a tile coordinate is solid (bounds = solid walls)
 ;; Any non-zero tile type is solid
 (define (tile-solid? [level : (Array i64)] [cols : i64] [rows : i64] [col : i64] [row : i64]) : bool
