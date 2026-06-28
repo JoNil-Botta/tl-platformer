@@ -156,6 +156,18 @@
 (define STATE-FADE-IN : i64
   (cast 7 : i64))
 
+;; World map state
+(define STATE-MAP : i64
+  (cast 8 : i64))
+
+;; Check if in world map
+(define (is-map?) : bool
+  (= game-state STATE-MAP))
+
+;; Trigger world map screen
+(define (show-map) : unit
+  (set! game-state STATE-MAP))
+
 ;; Fade alpha (0.0 = fully visible, 1.0 = fully black)
 (define fade-alpha : f64
   0.0)

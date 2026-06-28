@@ -12,6 +12,8 @@
 (import "level_progression.tl")
 (import "screen_shake.tl")
 (import "particles.tl")
+(import "audio.tl")
+(import "high_score.tl")
 
 ;; Counter for question block hits (every 5th spawns a 1-UP)
 (define question-hits : i64
@@ -24,6 +26,14 @@
 ;; Pending transition for fade system (0=none, 1=start, 2=next-level, 3=next-world, 4=restart)
 (define pending-transition : i64
   (cast 0 : i64))
+
+;; Previous frame jump input (for detecting rising edge)
+(define prev-jump-input : bool
+  false)
+
+;; Track whether high score has been updated for this game over
+(define high-score-checked : bool
+  false)
 
 (extern (InitWindow [width : i32] [height : i32] [title : (Ptr u8)]) : unit)
 (extern (SetTargetFPS [fps : i32]) : unit)
@@ -182,113 +192,121 @@
     (draw-player px py TILE-F)
     ;; Draw particles (on top of gameplay, below HUD)
     (draw-particles)
-    ;; HUD
-    (DrawText
-      (ffi-cstr "tl-platformer")
-      (cast 12 : i32)
-      (cast 12 : i32)
-      (cast 20 : i32)
-      (Color (cast 30 : u8) (cast 30 : u8) (cast 30 : u8) (cast 255 : u8)))
-    (DrawText
-      (ffi-cstr "SCORE: ")
-      (cast 12 : i32)
-      (cast 36 : i32)
-      (cast 16 : i32)
-      (Color (cast 30 : u8) (cast 30 : u8) (cast 30 : u8) (cast 255 : u8)))
-    (DrawText
-      (ffi-cstr "LIVES: ")
-      (cast 12 : i32)
-      (cast 54 : i32)
-      (cast 16 : i32)
-      (Color (cast 30 : u8) (cast 30 : u8) (cast 30 : u8) (cast 255 : u8)))
-    (DrawText
-      (ffi-cstr "TIME: ")
-      (cast 12 : i32)
-      (cast 72 : i32)
-      (cast 16 : i32)
-      (Color (cast 30 : u8) (cast 30 : u8) (cast 30 : u8) (cast 255 : u8)))))
+    ;; HUD with actual values
+    (draw-hud
+      score
+      coins-collected
+      lives
+      (cast time-remaining : i64)
+      current-world
+      current-level
+      (cast SCREEN-W : i64))))
 
 (define (draw) : unit
   (begin
     (BeginDrawing)
-    (if (is-title?)
-      (begin
-        (ClearBackground
-          (Color (cast 20 : u8) (cast 20 : u8) (cast 30 : u8) (cast 255 : u8)))
-        (draw-title-screen (cast LEVEL-COLS : i64) (cast LEVEL-ROWS : i64)))
-      (begin
-        (ClearBackground (biome-background-color))
-        (draw-gameplay)
-        (when (is-paused?) (draw-pause-screen SCREEN-W SCREEN-H))
-        (when
-          (is-level-complete?)
-          (begin
-            (DrawText
-              (ffi-cstr "LEVEL COMPLETE")
-              (cast 180 : i32)
-              (cast 200 : i32)
-              (cast 40 : i32)
-              (Color
-                (cast 50 : u8)
-                (cast 200 : u8)
-                (cast 50 : u8)
-                (cast 255 : u8)))
-            (DrawText
-              (ffi-cstr "Press ENTER to continue")
-              (cast 200 : i32)
-              (cast 260 : i32)
-              (cast 20 : i32)
-              (Color
-                (cast 30 : u8)
-                (cast 30 : u8)
-                (cast 30 : u8)
-                (cast 255 : u8)))))
-        (when
-          (is-world-complete?)
-          (begin
-            (DrawText
-              (ffi-cstr "WORLD COMPLETE")
-              (cast 180 : i32)
-              (cast 200 : i32)
-              (cast 40 : i32)
-              (Color
-                (cast 50 : u8)
-                (cast 200 : u8)
-                (cast 50 : u8)
-                (cast 255 : u8)))
-            (DrawText
-              (ffi-cstr "Press ENTER for next world")
-              (cast 190 : i32)
-              (cast 260 : i32)
-              (cast 20 : i32)
-              (Color
-                (cast 30 : u8)
-                (cast 30 : u8)
-                (cast 30 : u8)
-                (cast 255 : u8)))))
-        (when
-          (is-game-over?)
-          (begin
-            (DrawText
-              (ffi-cstr "GAME OVER")
-              (cast 200 : i32)
-              (cast 200 : i32)
-              (cast 40 : i32)
-              (Color
-                (cast 200 : u8)
-                (cast 50 : u8)
-                (cast 50 : u8)
-                (cast 255 : u8)))
-            (DrawText
-              (ffi-cstr "Press R to restart")
-              (cast 220 : i32)
-              (cast 260 : i32)
-              (cast 20 : i32)
-              (Color
-                (cast 30 : u8)
-                (cast 30 : u8)
-                (cast 30 : u8)
-                (cast 255 : u8)))))))
+    (cond
+      [(is-title?)
+       (begin
+         (ClearBackground
+           (Color (cast 20 : u8) (cast 20 : u8) (cast 30 : u8) (cast 255 : u8)))
+         (draw-title-screen (cast SCREEN-W : i64) (get-high-score)))]
+      [(is-map?)
+       (draw-world-map (cast SCREEN-W : i64) (cast SCREEN-H : i64) current-world current-level)]
+      [else
+       (begin
+         (ClearBackground (biome-background-color))
+         (draw-gameplay)
+         (when (is-paused?) (draw-pause-screen SCREEN-W SCREEN-H))
+         (when
+           (is-level-complete?)
+           (begin
+             (DrawText
+               (ffi-cstr "LEVEL COMPLETE")
+               (cast 180 : i32)
+               (cast 200 : i32)
+               (cast 40 : i32)
+               (Color
+                 (cast 50 : u8)
+                 (cast 200 : u8)
+                 (cast 50 : u8)
+                 (cast 255 : u8)))
+             (DrawText
+               (ffi-cstr "Press ENTER to continue")
+               (cast 200 : i32)
+               (cast 260 : i32)
+               (cast 20 : i32)
+               (Color
+                 (cast 30 : u8)
+                 (cast 30 : u8)
+                 (cast 30 : u8)
+                 (cast 255 : u8)))))
+         (when
+           (is-world-complete?)
+           (begin
+             (DrawText
+               (ffi-cstr "WORLD COMPLETE")
+               (cast 180 : i32)
+               (cast 200 : i32)
+               (cast 40 : i32)
+               (Color
+                 (cast 50 : u8)
+                 (cast 200 : u8)
+                 (cast 50 : u8)
+                 (cast 255 : u8)))
+             (DrawText
+               (ffi-cstr "Press ENTER for next world")
+               (cast 190 : i32)
+               (cast 260 : i32)
+               (cast 20 : i32)
+               (Color
+                 (cast 30 : u8)
+                 (cast 30 : u8)
+                 (cast 30 : u8)
+                 (cast 255 : u8)))))
+         (when
+           (is-game-over?)
+           (begin
+             (DrawText
+               (ffi-cstr "GAME OVER")
+               (cast 200 : i32)
+               (cast 200 : i32)
+               (cast 40 : i32)
+               (Color
+                 (cast 200 : u8)
+                 (cast 50 : u8)
+                 (cast 50 : u8)
+                 (cast 255 : u8)))
+             (DrawText
+               (ffi-cstr "Press R to restart")
+               (cast 220 : i32)
+               (cast 260 : i32)
+               (cast 20 : i32)
+               (Color
+                 (cast 30 : u8)
+                 (cast 30 : u8)
+                 (cast 30 : u8)
+                 (cast 255 : u8)))
+             (DrawText
+               (ffi-cstr "HIGH SCORE:")
+               (cast 260 : i32)
+               (cast 300 : i32)
+               (cast 16 : i32)
+               (Color
+                 (cast 180 : u8)
+                 (cast 180 : u8)
+                 (cast 180 : u8)
+                 (cast 255 : u8)))
+             (DrawText
+               (ffi-cstr (int->string (get-high-score)))
+               (cast 300 : i32)
+               (cast 320 : i32)
+               (cast 20 : i32)
+               (Color
+                 (cast 255 : u8)
+                 (cast 220 : u8)
+                 (cast 40 : u8)
+                 (cast 255 : u8))))))])
     (draw-fade (get-fade-alpha) SCREEN-W SCREEN-H)
     (EndDrawing)))
 
@@ -298,6 +316,8 @@
 
 (define (main) : i64
   (begin
+    ;; Load high score if it exists
+    (high-score-load)
     ;; Generate level using WFC with fixed seed (vary per level later)
     (let
       [wfc-success : bool
@@ -338,6 +358,7 @@
       (ffi-cstr "tl-platformer"))
     (SetTargetFPS (cast 60 : i32))
     (load-assets)
+    (audio-init)
     (while (not (WindowShouldClose))
       (begin
         (let
@@ -351,22 +372,29 @@
                   (cond
                     [(= pending-transition 1)
                      (begin
-                       (generate-current-level)
-                       (start-fade-in))]
+                       (show-map)
+                       (set! fade-alpha 0.0)
+                       (set! pending-transition 0))]
                     [(= pending-transition 2)
                      (begin
-                       (generate-current-level)
-                       (start-fade-in))]
+                       (show-map)
+                       (set! fade-alpha 0.0)
+                       (set! pending-transition 0))]
                     [(= pending-transition 3)
                      (begin
-                       (next-world)
-                       (generate-current-level)
-                       (start-fade-in))]
+                       (show-map)
+                       (set! fade-alpha 0.0)
+                       (set! pending-transition 0))]
                     [(= pending-transition 4)
                      (begin
                        (reset-progression)
                        (game-reset)
                        (score-reset)
+                       (show-map)
+                       (set! fade-alpha 0.0)
+                       (set! pending-transition 0))]
+                    [(= pending-transition 5)
+                     (begin
                        (generate-current-level)
                        (start-fade-in))]
                     [else unit])
@@ -390,14 +418,32 @@
                (begin
                  (when (IsKeyPressed KEY_P)
                    (pause-game))
-                 (player-update
-                   dt
-                   (IsKeyDown KEY_LEFT)
-                   (IsKeyDown KEY_RIGHT)
-                   (IsKeyDown KEY_SPACE)
-                   level
-                   LEVEL-COLS
-                   LEVEL-ROWS)
+                 (if (is-player-dying?)
+                   ;; Death animation running
+                   (begin
+                     (if (player-update-death dt)
+                       (begin
+                         (player-die)
+                         unit)
+                       unit)
+                     unit)
+                   ;; Normal gameplay
+                   (begin
+                     ;; Detect jump edge and play sound
+                 (let
+                   [jump-now : bool (IsKeyDown KEY_SPACE)]
+                   [jump-pressed : bool (and jump-now (not prev-jump-input))]
+                   (begin
+                     (when jump-pressed (play-jump))
+                     (player-update
+                       dt
+                       (IsKeyDown KEY_LEFT)
+                       (IsKeyDown KEY_RIGHT)
+                       jump-now
+                       level
+                       LEVEL-COLS
+                       LEVEL-ROWS)
+                     (set! prev-jump-input jump-now)))
                  (update-player-anim dt vx vy on-ground)
                  (camera-update
                    dt
@@ -423,6 +469,7 @@
                    (begin
                      (when (hit-question-block level LEVEL-COLS LEVEL-ROWS px py)
                        (begin
+                         (play-bump)
                          (set! question-hits (+ question-hits 1))
                          (if (= (% question-hits 5) 0)
                            (oneup-spawn px (- py (* TILE-SIZE-F 1.5)))
@@ -434,11 +481,15 @@
                  (let
                    [coins-collected : i64 (coins-collect px py)]
                    (when (> coins-collected 0)
-                     (spawn-coin-sparkle px py)))
+                     (begin
+                       (play-coin)
+                       (spawn-coin-sparkle px py))))
                  ;; Check mushroom collection
-                 (mushrooms-collect px py)
+                 (when (mushrooms-collect px py)
+                   (play-powerup))
                  ;; Check 1-UP collection
-                 (oneups-collect px py)
+                 (when (oneups-collect px py)
+                   (play-oneup))
                  ;; Update 1-UP mushrooms
                  (oneups-update dt level LEVEL-COLS LEVEL-ROWS)
                  ;; Update timer
@@ -446,28 +497,32 @@
                    [time-out : bool (timer-update dt)]
                    (when time-out
                      (begin
-                       (player-die)
+                       (play-death)
+                       (player-start-death)
                        unit)))
                  ;; Check player-enemy collision
                  (let
                    [collision : i64 (player-enemy-collide px py vy)]
                    (begin
                      (when (= collision 1)
-                       ;; Stomp: bounce player up + screen shake + particles
+                       ;; Stomp: bounce player up + screen shake + particles + sound
                        (begin
+                         (play-stomp)
                          (set! vy (* JUMP-VEL 0.5))
                          (trigger-shake SHAKE-MEDIUM 0.2)
                          (spawn-stomp-burst px py)))
                      (when (= collision 2)
-                       ;; Side hit: player dies + strong shake
+                       ;; Side hit: player dies + strong shake + sound
                        (begin
-                         (player-die)
+                         (play-death)
+                         (player-start-death)
                          (trigger-shake SHAKE-LARGE 0.35)
                          unit))))
                  ;; Check for pit death
                  (when (> py WORLD-H)
                    (begin
-                     (player-die)
+                     (play-death)
+                     (player-start-death)
                      (trigger-shake SHAKE-LARGE 0.4)
                      unit))
                  ;; Check for goal
@@ -476,7 +531,7 @@
                      (set! score (+ score (timer-bonus)))
                      (if (< current-level LEVELS-PER-WORLD)
                        (level-complete)
-                       (world-complete)))))]
+                       (world-complete)))))))]
               [(is-paused?)
                (when (IsKeyPressed KEY_P)
                  (resume-game))]
@@ -493,13 +548,25 @@
                  (update-level-transition dt)
                  (when (IsKeyPressed KEY_ENTER)
                    (begin
+                     (next-world)
                      (set! pending-transition 3)
                      (start-fade-out))))]
-              [(is-game-over?)
-               (when (IsKeyPressed KEY_R)
+              [(is-map?)
+               (when (IsKeyPressed KEY_ENTER)
                  (begin
-                   (set! pending-transition 4)
+                   (set! pending-transition 5)
                    (start-fade-out)))]
+              [(is-game-over?)
+               (begin
+                 (when (not high-score-checked)
+                   (begin
+                     (high-score-update score)
+                     (set! high-score-checked true)))
+                 (when (IsKeyPressed KEY_R)
+                   (begin
+                     (set! high-score-checked false)
+                     (set! pending-transition 4)
+                     (start-fade-out))))]
               [else unit])
             ;; Cycle biome on B key with cooldown
             (when
@@ -512,5 +579,6 @@
               (set! biome-cooldown (- biome-cooldown dt)))))
         (draw)))
     (unload-assets)
+    (audio-shutdown)
     (CloseWindow)
     0))
