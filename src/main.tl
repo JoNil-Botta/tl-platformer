@@ -1,4 +1,4 @@
-(import "stdlib/ffi.tl")
+(import stdlib.ffi)
 (import "wfc.tl")
 (import "assets.tl")
 (import "physics.tl")
@@ -276,7 +276,7 @@
            (is-level-complete?)
            (begin
              (DrawText
-               (ffi-cstr "LEVEL COMPLETE")
+               (ffi.cstr "LEVEL COMPLETE")
                (cast 180 : i32)
                (cast 200 : i32)
                (cast 40 : i32)
@@ -286,7 +286,7 @@
                  (cast 50 : u8)
                  (cast 255 : u8)))
              (DrawText
-               (ffi-cstr "Press ENTER to continue")
+               (ffi.cstr "Press ENTER to continue")
                (cast 200 : i32)
                (cast 260 : i32)
                (cast 20 : i32)
@@ -299,7 +299,7 @@
            (is-world-complete?)
            (begin
              (DrawText
-               (ffi-cstr "WORLD COMPLETE")
+               (ffi.cstr "WORLD COMPLETE")
                (cast 180 : i32)
                (cast 200 : i32)
                (cast 40 : i32)
@@ -309,7 +309,7 @@
                  (cast 50 : u8)
                  (cast 255 : u8)))
              (DrawText
-               (ffi-cstr "Press ENTER for next world")
+               (ffi.cstr "Press ENTER for next world")
                (cast 190 : i32)
                (cast 260 : i32)
                (cast 20 : i32)
@@ -322,7 +322,7 @@
            (is-game-over?)
            (begin
              (DrawText
-               (ffi-cstr "GAME OVER")
+               (ffi.cstr "GAME OVER")
                (cast 200 : i32)
                (cast 200 : i32)
                (cast 40 : i32)
@@ -332,7 +332,7 @@
                  (cast 50 : u8)
                  (cast 255 : u8)))
              (DrawText
-               (ffi-cstr "Press R to restart")
+               (ffi.cstr "Press R to restart")
                (cast 220 : i32)
                (cast 260 : i32)
                (cast 20 : i32)
@@ -342,7 +342,7 @@
                  (cast 30 : u8)
                  (cast 255 : u8)))
              (DrawText
-               (ffi-cstr "HIGH SCORE:")
+               (ffi.cstr "HIGH SCORE:")
                (cast 260 : i32)
                (cast 300 : i32)
                (cast 16 : i32)
@@ -352,7 +352,7 @@
                  (cast 180 : u8)
                  (cast 255 : u8)))
              (DrawText
-               (ffi-cstr (int->string (get-high-score)))
+               (ffi.cstr (int->string (get-high-score)))
                (cast 300 : i32)
                (cast 320 : i32)
                (cast 20 : i32)
@@ -409,7 +409,7 @@
     (InitWindow
       (cast SCREEN-W : i32)
       (cast SCREEN-H : i32)
-      (ffi-cstr "tl-platformer"))
+      (ffi.cstr "tl-platformer"))
     (SetTargetFPS (cast 60 : i32))
     (load-assets)
     (audio-init)
@@ -422,7 +422,7 @@
             (when (is-fading-out?)
               (when (update-fade dt)
                 (begin
-                  ;; Fade out complete — execute pending transition
+                  ;; Fade out complete - execute pending transition
                   (cond
                     [(= pending-transition 1)
                      (begin

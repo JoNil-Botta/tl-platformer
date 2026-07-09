@@ -137,9 +137,11 @@
                     (if (= (struct-get p ptype) PARTICLE-SPARKLE)
                       (Color (cast 255 : u8) (cast 220 : u8) (cast 50 : u8) alpha)
                       (Color (cast 255 : u8) (cast 100 : u8) (cast 50 : u8) alpha)))]
+                [screen-x : f32 (world-to-screen-x (struct-get p x))]
+                [screen-y : f32 (world-to-screen-y (struct-get p y))]
                 (DrawRectangle
-                  (cast (- (struct-get p x) (* (struct-get p size) 0.5)) : i32)
-                  (cast (- (struct-get p y) (* (struct-get p size) 0.5)) : i32)
+                  (cast (- screen-x (cast (* (struct-get p size) 0.5) : f32)) : i32)
+                  (cast (- screen-y (cast (* (struct-get p size) 0.5) : f32)) : i32)
                   (cast (struct-get p size) : i32)
                   (cast (struct-get p size) : i32)
                   color)))))

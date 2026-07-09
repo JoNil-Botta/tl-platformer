@@ -1,4 +1,4 @@
-(import "stdlib/ffi.tl")
+(import stdlib.ffi)
 (import "camera.tl")
 
 ;; Asset system for tl-platformer
@@ -291,12 +291,12 @@
 ;; Load all game assets
 (define (load-assets) : unit
   (begin
-    (set! tile-ground (LoadTexture (ffi-cstr "assets/tiles/ground.png")))
-    (set! tile-platform (LoadTexture (ffi-cstr "assets/tiles/platform.png")))
-    (set! tile-wall (LoadTexture (ffi-cstr "assets/tiles/wall.png")))
+    (set! tile-ground (LoadTexture (ffi.cstr "assets/tiles/ground.png")))
+    (set! tile-platform (LoadTexture (ffi.cstr "assets/tiles/platform.png")))
+    (set! tile-wall (LoadTexture (ffi.cstr "assets/tiles/wall.png")))
     (set!
       player-sprite
-      (LoadTexture (ffi-cstr "assets/player/spritesheet.png")))))
+      (LoadTexture (ffi.cstr "assets/player/spritesheet.png")))))
 
 ;; Unload all game assets
 (define (unload-assets) : unit
@@ -394,20 +394,13 @@
 ;; Camera offset is applied to transform to screen coordinates
 (define (draw-player [px : f64] [py : f64] [player-size : f32]) : unit
   (let
-    [dest-x : f32 (world-to-screen-x px)]
-    [dest-y : f32 (world-to-screen-y py)]
-    [dest-w : f32
-      (if player-facing-right
-        player-size
-        (- 0.0 player-size))]
-    [dest-h : f32 player-size]
+    [dest-x : f32 (world-to-screen-x (- px (* (cast player-size : f64) 0.5)))]
+    [dest-y : f32 (world-to-screen-y (- py (* (cast player-size : f64) 0.5)))]
     (if (texture-loaded? player-sprite)
-      (DrawTexturePro
+      (DrawTextureRec
         player-sprite
         (player-frame-rect player-anim-frame player-anim-state)
-        (Rectangle dest-x dest-y dest-w dest-h)
-        (Vector2 0.0 0.0)
-        0.0
+        (Vector2 dest-x dest-y)
         (Color (cast 255 : u8) (cast 255 : u8) (cast 255 : u8) (cast 255 : u8)))
       (DrawRectangleRec
         (Rectangle dest-x dest-y (- player-size 4.0) (- player-size 4.0))

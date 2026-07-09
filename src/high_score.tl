@@ -1,10 +1,10 @@
-(import "stdlib/ffi.tl")
+(import stdlib.ffi)
 (import "stdlib/string.tl")
 
 ;; High score persistence: simple file-based storage
 
 (define HIGH-SCORE-FILE : (Ptr u8)
-  (ffi-cstr "highscore.txt"))
+  (ffi.cstr "highscore.txt"))
 
 (define high-score : i64
   (cast 0 : i64))
@@ -38,7 +38,7 @@
 ;; Load high score from file. Returns true if successful.
 (define (high-score-load) : bool
   (let
-    [fp : (Ptr unit) (fopen HIGH-SCORE-FILE (ffi-cstr "r"))]
+    [fp : (Ptr unit) (fopen HIGH-SCORE-FILE (ffi.cstr "r"))]
     (if (unsafe (ptr-null? (ptr-cast fp : (Ptr unit))))
       false
       (let
@@ -57,14 +57,14 @@
 ;; Save high score to file. Returns true if successful.
 (define (high-score-save) : bool
   (let
-    [fp : (Ptr unit) (fopen HIGH-SCORE-FILE (ffi-cstr "w"))]
+    [fp : (Ptr unit) (fopen HIGH-SCORE-FILE (ffi.cstr "w"))]
     (if (unsafe (ptr-null? (ptr-cast fp : (Ptr unit))))
       false
       (let
         [score-str : String (int->string high-score)]
         (begin
-          (fputs (ffi-cstr score-str) fp)
-          (fputs (ffi-cstr "\n") fp)
+          (fputs (ffi.cstr score-str) fp)
+          (fputs (ffi.cstr "\n") fp)
           (fclose fp)
           true)))))
 

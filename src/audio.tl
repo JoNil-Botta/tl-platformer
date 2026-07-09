@@ -1,4 +1,4 @@
-(import "stdlib/ffi.tl")
+(import stdlib.ffi)
 
 ;; Audio system for tl-platformer
 ;; Loads and plays sound effects via Raylib
@@ -47,13 +47,13 @@
 (define (audio-init) : unit
   (begin
     (InitAudioDevice)
-    (set! snd-jump (LoadSound (ffi-cstr "assets/sounds/jump.wav")))
-    (set! snd-coin (LoadSound (ffi-cstr "assets/sounds/coin.wav")))
-    (set! snd-stomp (LoadSound (ffi-cstr "assets/sounds/stomp.wav")))
-    (set! snd-death (LoadSound (ffi-cstr "assets/sounds/death.wav")))
-    (set! snd-powerup (LoadSound (ffi-cstr "assets/sounds/powerup.wav")))
-    (set! snd-oneup (LoadSound (ffi-cstr "assets/sounds/oneup.wav")))
-    (set! snd-bump (LoadSound (ffi-cstr "assets/sounds/bump.wav")))
+    (set! snd-jump (LoadSound (ffi.cstr "assets/sounds/jump.wav")))
+    (set! snd-coin (LoadSound (ffi.cstr "assets/sounds/coin.wav")))
+    (set! snd-stomp (LoadSound (ffi.cstr "assets/sounds/stomp.wav")))
+    (set! snd-death (LoadSound (ffi.cstr "assets/sounds/death.wav")))
+    (set! snd-powerup (LoadSound (ffi.cstr "assets/sounds/powerup.wav")))
+    (set! snd-oneup (LoadSound (ffi.cstr "assets/sounds/oneup.wav")))
+    (set! snd-bump (LoadSound (ffi.cstr "assets/sounds/bump.wav")))
     (set! audio-enabled true)))
 
 ;; Unload all sounds and close audio

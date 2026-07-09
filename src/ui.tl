@@ -1,21 +1,21 @@
-(import "stdlib/ffi.tl")
+(import stdlib.ffi)
 
 ;; UI system: title screen, pause menu, fade transitions
 ;; Title text constants
 (define TITLE-TEXT : (Ptr u8)
-  (ffi-cstr "TL-PLATFORMER"))
+  (ffi.cstr "TL-PLATFORMER"))
 (define SUBTITLE-TEXT : (Ptr u8)
-  (ffi-cstr "A TypeLisp Adventure"))
+  (ffi.cstr "A TypeLisp Adventure"))
 (define PRESS-ENTER-TEXT : (Ptr u8)
-  (ffi-cstr "PRESS ENTER TO START"))
+  (ffi.cstr "PRESS ENTER TO START"))
 (define PAUSED-TEXT : (Ptr u8)
-  (ffi-cstr "PAUSED"))
+  (ffi.cstr "PAUSED"))
 (define RESUME-TEXT : (Ptr u8)
-  (ffi-cstr "PRESS P TO RESUME"))
+  (ffi.cstr "PRESS P TO RESUME"))
 (define CONTROLS-TEXT-1 : (Ptr u8)
-  (ffi-cstr "LEFT/RIGHT: Move  SPACE: Jump"))
+  (ffi.cstr "LEFT/RIGHT: Move  SPACE: Jump"))
 (define CONTROLS-TEXT-2 : (Ptr u8)
-  (ffi-cstr "R: Restart  P: Pause"))
+  (ffi.cstr "R: Restart  P: Pause"))
 
 (extern (DrawText
   [text : (Ptr u8)]
@@ -104,13 +104,13 @@
     (when (> high-score 0)
       (begin
         (draw-text-centered
-          (ffi-cstr "HIGH SCORE")
+          (ffi.cstr "HIGH SCORE")
           (cast 450 : i32)
           (cast 12 : i32)
           SUBTITLE-COLOR
           screen-w)
         (draw-text-centered
-          (ffi-cstr (int->string high-score))
+          (ffi.cstr (int->string high-score))
           (cast 465 : i32)
           (cast 20 : i32)
           PROMPT-COLOR
@@ -176,7 +176,7 @@
   (begin
     (DrawText label x y (cast 10 : i32) HUD-TEXT-COLOR)
     (DrawText
-      (ffi-cstr (int->string value))
+      (ffi.cstr (int->string value))
       x
       (+ y (cast 12 : i32))
       (cast 16 : i32)
@@ -201,7 +201,7 @@
       HUD-BG-COLOR)
     ;; Score (left)
     (draw-hud-pair
-      (ffi-cstr "SCORE")
+      (ffi.cstr "SCORE")
       score
       (cast 12 : i32)
       (cast 2 : i32)
@@ -209,19 +209,19 @@
     ;; Coins (left, next to score)
     (begin
       (DrawText
-        (ffi-cstr "COINS")
+        (ffi.cstr "COINS")
         (cast 90 : i32)
         (cast 2 : i32)
         (cast 10 : i32)
         HUD-TEXT-COLOR)
       (DrawText
-        (ffi-cstr "x")
+        (ffi.cstr "x")
         (cast 90 : i32)
         (cast 14 : i32)
         (cast 16 : i32)
         HUD-ACCENT-COLOR)
       (DrawText
-        (ffi-cstr (int->string coins))
+        (ffi.cstr (int->string coins))
         (cast 102 : i32)
         (cast 14 : i32)
         (cast 16 : i32)
@@ -229,38 +229,38 @@
     ;; World indicator (center)
     (begin
       (DrawText
-        (ffi-cstr "WORLD")
+        (ffi.cstr "WORLD")
         (cast 340 : i32)
         (cast 2 : i32)
         (cast 10 : i32)
         HUD-TEXT-COLOR)
       (DrawText
-        (ffi-cstr "W")
+        (ffi.cstr "W")
         (cast 340 : i32)
         (cast 14 : i32)
         (cast 16 : i32)
         HUD-TEXT-COLOR)
       (DrawText
-        (ffi-cstr (int->string world))
+        (ffi.cstr (int->string world))
         (cast 352 : i32)
         (cast 14 : i32)
         (cast 16 : i32)
         HUD-TEXT-COLOR)
       (DrawText
-        (ffi-cstr "-")
+        (ffi.cstr "-")
         (cast 360 : i32)
         (cast 14 : i32)
         (cast 16 : i32)
         HUD-TEXT-COLOR)
       (DrawText
-        (ffi-cstr (int->string level))
+        (ffi.cstr (int->string level))
         (cast 370 : i32)
         (cast 14 : i32)
         (cast 16 : i32)
         HUD-TEXT-COLOR))
     ;; Time (right)
     (draw-hud-pair
-      (ffi-cstr "TIME")
+      (ffi.cstr "TIME")
       time-sec
       (cast 580 : i32)
       (cast 2 : i32)
@@ -268,19 +268,19 @@
     ;; Lives (right, next to time)
     (begin
       (DrawText
-        (ffi-cstr "LIVES")
+        (ffi.cstr "LIVES")
         (cast 650 : i32)
         (cast 2 : i32)
         (cast 10 : i32)
         HUD-TEXT-COLOR)
       (DrawText
-        (ffi-cstr "x")
+        (ffi.cstr "x")
         (cast 650 : i32)
         (cast 14 : i32)
         (cast 16 : i32)
         (Color (cast 255 : u8) (cast 80 : u8) (cast 80 : u8) (cast 255 : u8)))
       (DrawText
-        (ffi-cstr (int->string lives))
+        (ffi.cstr (int->string lives))
         (cast 662 : i32)
         (cast 14 : i32)
         (cast 16 : i32)
@@ -331,7 +331,7 @@
       (Color (cast 20 : u8) (cast 20 : u8) (cast 35 : u8) (cast 255 : u8)))
     ;; World title
     (draw-text-centered
-      (ffi-cstr "WORLD MAP")
+      (ffi.cstr "WORLD MAP")
       (cast 80 : i32)
       (cast 36 : i32)
       TITLE-COLOR
@@ -359,7 +359,7 @@
             (begin
               (draw-map-node nx (cast 250 : i32) (cast 16 : i32) node-color)
               (DrawText
-                (ffi-cstr (int->string i))
+                (ffi.cstr (int->string i))
                 (- nx (cast 5 : i32))
                 (cast 243 : i32)
                 (cast 16 : i32)
@@ -371,7 +371,7 @@
       (draw-map-node px (cast 210 : i32) (cast 8 : i32) MAP-PLAYER-COLOR))
     ;; Prompt
     (draw-text-centered
-      (ffi-cstr "PRESS ENTER TO START")
+      (ffi.cstr "PRESS ENTER TO START")
       (cast 350 : i32)
       (cast 24 : i32)
       PROMPT-COLOR
