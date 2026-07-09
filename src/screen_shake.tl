@@ -2,11 +2,9 @@
 
 ;; Screen shake system
 ;; Adds temporary camera offset for impact feedback
-
 ;; Current shake offset (applied in addition to camera position)
 (define shake-x : f64
   0.0)
-
 (define shake-y : f64
   0.0)
 
@@ -25,10 +23,8 @@
 ;; Predefined shake presets
 (define SHAKE-SMALL : f64
   3.0)
-
 (define SHAKE-MEDIUM : f64
   6.0)
-
 (define SHAKE-LARGE : f64
   12.0)
 
@@ -41,7 +37,7 @@
 
 ;; Current seed for shake randomness (increments each frame)
 (define shake-seed : i64
-  (cast 0 : i64))
+  0)
 
 ;; Trigger a screen shake with given intensity and duration
 (define (trigger-shake [intensity : f64] [duration : f64]) : unit
@@ -56,15 +52,16 @@
     (begin
       (set! shake-timer (- shake-timer dt))
       (set! shake-intensity (- shake-intensity (* SHAKE-DECAY dt)))
-      (when (<= shake-intensity 0.0)
+      (when
+        (<= shake-intensity 0.0)
         (begin
           (set! shake-intensity 0.0)
           (set! shake-timer 0.0)))
       ;; Generate random offset using hash (deterministic per frame)
-      (set! shake-seed (+ shake-seed (cast 1 : i64)))
+      (set! shake-seed (+ shake-seed 1))
       (let
         [r1 : f64 (hash-random shake-seed)]
-        [r2 : f64 (hash-random (+ shake-seed (cast 73 : i64)))]
+        [r2 : f64 (hash-random (+ shake-seed 73))]
         (begin
           (set! shake-x (* (- (* r1 2.0) 1.0) shake-intensity))
           (set! shake-y (* (- (* r2 2.0) 1.0) shake-intensity)))))

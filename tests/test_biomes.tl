@@ -6,10 +6,7 @@
 (test
   test-biome-constants
   (assert-true
-    (and
-      (= BIOME-OVERWORLD 0)
-      (= BIOME-UNDERGROUND 1)
-      (= BIOME-CASTLE 2))
+    (and (= BIOME-OVERWORLD 0) (= BIOME-UNDERGROUND 1) (= BIOME-CASTLE 2))
     "biome constants should be 0, 1, 2"))
 
 ;; Default biome is overworld
@@ -28,9 +25,9 @@
       [c : Color (biome-background-color)]
       (assert-true
         (and
-          (= (struct-get c r) (cast 135 : u8))
-          (= (struct-get c g) (cast 206 : u8))
-          (= (struct-get c b) (cast 235 : u8)))
+          (= (struct-get c r) 135)
+          (= (struct-get c g) 206)
+          (= (struct-get c b) 235))
         "overworld background should be sky blue"))))
 
 ;; Underground background color
@@ -42,9 +39,9 @@
       [c : Color (biome-background-color)]
       (assert-true
         (and
-          (= (struct-get c r) (cast 30 : u8))
-          (= (struct-get c g) (cast 30 : u8))
-          (= (struct-get c b) (cast 40 : u8)))
+          (= (struct-get c r) 30)
+          (= (struct-get c g) 30)
+          (= (struct-get c b) 40))
         "underground background should be dark gray"))))
 
 ;; Castle background color
@@ -56,9 +53,9 @@
       [c : Color (biome-background-color)]
       (assert-true
         (and
-          (= (struct-get c r) (cast 20 : u8))
-          (= (struct-get c g) (cast 10 : u8))
-          (= (struct-get c b) (cast 10 : u8)))
+          (= (struct-get c r) 20)
+          (= (struct-get c g) 10)
+          (= (struct-get c b) 10))
         "castle background should be near black"))))
 
 ;; Overworld ground tile color
@@ -70,9 +67,9 @@
       [c : Color (biome-tile-color 1)]
       (assert-true
         (and
-          (= (struct-get c r) (cast 90 : u8))
-          (= (struct-get c g) (cast 60 : u8))
-          (= (struct-get c b) (cast 30 : u8)))
+          (= (struct-get c r) 90)
+          (= (struct-get c g) 60)
+          (= (struct-get c b) 30))
         "overworld ground tile should be brown"))))
 
 ;; Underground ground tile color
@@ -84,9 +81,9 @@
       [c : Color (biome-tile-color 1)]
       (assert-true
         (and
-          (= (struct-get c r) (cast 80 : u8))
-          (= (struct-get c g) (cast 80 : u8))
-          (= (struct-get c b) (cast 80 : u8)))
+          (= (struct-get c r) 80)
+          (= (struct-get c g) 80)
+          (= (struct-get c b) 80))
         "underground ground tile should be gray"))))
 
 ;; Castle ground tile color
@@ -98,9 +95,9 @@
       [c : Color (biome-tile-color 1)]
       (assert-true
         (and
-          (= (struct-get c r) (cast 60 : u8))
-          (= (struct-get c g) (cast 60 : u8))
-          (= (struct-get c b) (cast 60 : u8)))
+          (= (struct-get c r) 60)
+          (= (struct-get c g) 60)
+          (= (struct-get c b) 60))
         "castle ground tile should be dark gray"))))
 
 ;; Overworld brick tile color
@@ -112,9 +109,9 @@
       [c : Color (biome-tile-color 5)]
       (assert-true
         (and
-          (= (struct-get c r) (cast 180 : u8))
-          (= (struct-get c g) (cast 70 : u8))
-          (= (struct-get c b) (cast 50 : u8)))
+          (= (struct-get c r) 180)
+          (= (struct-get c g) 70)
+          (= (struct-get c b) 50))
         "overworld brick tile should be reddish"))))
 
 ;; Underground brick tile color
@@ -126,9 +123,9 @@
       [c : Color (biome-tile-color 5)]
       (assert-true
         (and
-          (= (struct-get c r) (cast 120 : u8))
-          (= (struct-get c g) (cast 60 : u8))
-          (= (struct-get c b) (cast 40 : u8)))
+          (= (struct-get c r) 120)
+          (= (struct-get c g) 60)
+          (= (struct-get c b) 40))
         "underground brick tile should be dark brown"))))
 
 ;; Castle brick tile color
@@ -140,9 +137,9 @@
       [c : Color (biome-tile-color 5)]
       (assert-true
         (and
-          (= (struct-get c r) (cast 140 : u8))
-          (= (struct-get c g) (cast 40 : u8))
-          (= (struct-get c b) (cast 30 : u8)))
+          (= (struct-get c r) 140)
+          (= (struct-get c g) 40)
+          (= (struct-get c b) 30))
         "castle brick tile should be dark red"))))
 
 ;; Unknown tile type returns magenta fallback
@@ -154,7 +151,7 @@
       [c : Color (biome-tile-color 99)]
       (assert-true
         (and
-          (= (struct-get c r) (cast 255 : u8))
-          (= (struct-get c g) (cast 0 : u8))
-          (= (struct-get c b) (cast 255 : u8)))
+          (= (struct-get c r) 255)
+          (= (struct-get c g) 0)
+          (= (struct-get c b) 255))
         "unknown tile type should return magenta fallback"))))

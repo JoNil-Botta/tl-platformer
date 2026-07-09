@@ -3,12 +3,11 @@
 (import "../src/level_progression.tl")
 
 ;; Tests for level progression system
-
 ;; Helper: reset to known state
 (define (reset-to-start) : unit
   (begin
-    (set! current-world (cast 1 : i64))
-    (set! current-level (cast 1 : i64))))
+    (set! current-world 1)
+    (set! current-level 1)))
 
 ;; Test 1: Initial state is world 1, level 1
 (test
@@ -113,21 +112,13 @@
   test-level-advancement
   (begin
     (reset-to-start)
-    (assert-true
-      (= current-level 1)
-      "should start at level 1")
+    (assert-true (= current-level 1) "should start at level 1")
     (next-level)
-    (assert-true
-      (= current-level 2)
-      "should advance to level 2")
+    (assert-true (= current-level 2) "should advance to level 2")
     (next-level)
-    (assert-true
-      (= current-level 3)
-      "should advance to level 3")
+    (assert-true (= current-level 3) "should advance to level 3")
     (next-level)
-    (assert-true
-      (= current-level 4)
-      "should advance to level 4")))
+    (assert-true (= current-level 4) "should advance to level 4")))
 
 ;; Test 8: next-level returns false after level 4 (world complete)
 (test
@@ -137,16 +128,12 @@
     (next-level)
     (next-level)
     (next-level)
-    (assert-false
-      (next-level)
-      "next-level should return false after level 4")
+    (assert-false (next-level) "next-level should return false after level 4")
     (assert-i64-eq
       current-level
       5
       "current-level should be 5 after completing all levels")
-    (assert-true
-      (is-world-finished?)
-      "world should be complete after level 4")))
+    (assert-true (is-world-finished?) "world should be complete after level 4")))
 
 ;; Test 9: next-world advances world and resets level
 (test
@@ -158,12 +145,8 @@
     (next-level)
     (next-level)
     (next-world)
-    (assert-true
-      (= current-world 2)
-      "should advance to world 2")
-    (assert-true
-      (= current-level 1)
-      "should reset to level 1")))
+    (assert-true (= current-world 2) "should advance to world 2")
+    (assert-true (= current-level 1) "should reset to level 1")))
 
 ;; Test 10: reset-world resets to level 1 keeping current world
 (test
@@ -173,12 +156,8 @@
     (next-level)
     (next-level)
     (reset-world)
-    (assert-true
-      (= current-world 1)
-      "world should stay 1")
-    (assert-true
-      (= current-level 1)
-      "should reset to level 1")))
+    (assert-true (= current-world 1) "world should stay 1")
+    (assert-true (= current-level 1) "should reset to level 1")))
 
 ;; Test 11: reset-progression resets to world 1, level 1
 (test
@@ -189,12 +168,8 @@
     (next-world)
     (next-level)
     (reset-progression)
-    (assert-true
-      (= current-world 1)
-      "should reset to world 1")
-    (assert-true
-      (= current-level 1)
-      "should reset to level 1")))
+    (assert-true (= current-world 1) "should reset to world 1")
+    (assert-true (= current-level 1) "should reset to level 1")))
 
 ;; Test 12: world-level-number returns correct display value
 (test

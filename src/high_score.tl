@@ -2,18 +2,24 @@
 (import "stdlib/string.tl")
 
 ;; High score persistence: simple file-based storage
-
 (define HIGH-SCORE-FILE : (Ptr u8)
   (ffi.cstr "highscore.txt"))
-
 (define high-score : i64
-  (cast 0 : i64))
+  0)
 
 ;; C file I/O FFI
 (extern (fopen [filename : (Ptr u8)] [mode : (Ptr u8)]) : (Ptr unit))
 (extern (fclose [stream : (Ptr unit)]) : i32)
-(extern (fread [ptr : (MutPtr u8)] [size : i64] [nmemb : i64] [stream : (Ptr unit)]) : i64)
-(extern (fwrite [ptr : (Ptr u8)] [size : i64] [nmemb : i64] [stream : (Ptr unit)]) : i64)
+(extern (fread
+  [ptr : (MutPtr u8)]
+  [size : i64]
+  [nmemb : i64]
+  [stream : (Ptr unit)]) : i64)
+(extern (fwrite
+  [ptr : (Ptr u8)]
+  [size : i64]
+  [nmemb : i64]
+  [stream : (Ptr unit)]) : i64)
 (extern (fputs [str : (Ptr u8)] [stream : (Ptr unit)]) : i32)
 (extern (remove [filename : (Ptr u8)]) : i32)
 
@@ -39,17 +45,20 @@
 (define (high-score-load) : bool
   (let
     [fp : (Ptr unit) (fopen HIGH-SCORE-FILE (ffi.cstr "r"))]
-    (if (unsafe (ptr-null? (ptr-cast fp : (Ptr unit))))
+    (if (unsafe
+      (ptr-null? (ptr-cast fp : (Ptr unit))))
       false
       (let
         [buf : (Array u8) (make-array u8 32)]
-        [buf-ptr : (MutPtr u8) (unsafe (ptr-cast (array-data buf) : (MutPtr u8)))]
-        [nread : i64 (fread buf-ptr (cast 1 : i64) (cast 31 : i64) fp)]
+        [buf-ptr : (MutPtr u8)
+          (unsafe
+            (ptr-cast (array-data buf) : (MutPtr u8)))]
+        [nread : i64 (fread buf-ptr 1 31 fp)]
         (begin
           (fclose fp)
           (if (> nread 0)
             (begin
-              (array-set! buf (cast 31 : i64) (cast 0 : u8))
+              (array-set! buf 31 0)
               (set! high-score (parse-digits buf nread))
               true)
             false))))))
@@ -58,7 +67,8 @@
 (define (high-score-save) : bool
   (let
     [fp : (Ptr unit) (fopen HIGH-SCORE-FILE (ffi.cstr "w"))]
-    (if (unsafe (ptr-null? (ptr-cast fp : (Ptr unit))))
+    (if (unsafe
+      (ptr-null? (ptr-cast fp : (Ptr unit))))
       false
       (let
         [score-str : String (int->string high-score)]
@@ -84,6 +94,6 @@
 ;; Reset high score (for testing)
 (define (high-score-reset) : unit
   (begin
-    (set! high-score (cast 0 : i64))
+    (set! high-score 0)
     (remove HIGH-SCORE-FILE)
     unit))

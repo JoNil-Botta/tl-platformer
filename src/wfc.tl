@@ -4,14 +4,14 @@
 ;; Seeded pseudo-random number generator (LCG)
 ;; Deterministic per seed -- essential for testing
 (define wfc-rng-state : i64
-  (cast 0 : i64))
+  0)
 
 (define (wfc-rng-seed! [s : i64]) : unit
   (set! wfc-rng-state s))
 
 (define (wfc-rng-next) : i64
   (begin
-    (set! wfc-rng-state (% (+ (* wfc-rng-state (cast 1103515245 : i64)) (cast 12345 : i64)) (cast 2147483648 : i64)))
+    (set! wfc-rng-state (% (+ (* wfc-rng-state 1103515245) 12345) 2147483648))
     wfc-rng-state))
 
 ;; Random integer in range [0, n-1]
@@ -28,158 +28,172 @@
 
 ;; Generate a platformer level into the given grid with seed
 ;; Returns true on success
-(define (wfc-generate [grid : (Array i64)] [cols : i64] [rows : i64] [seed : i64]) : bool
+(define (wfc-generate
+  [grid : (Array i64)]
+  [cols : i64]
+  [rows : i64]
+  [seed : i64]) : bool
   (let
     [size : i64 (* cols rows)]
     (begin
       ;; Seed RNG
       (wfc-rng-seed! seed)
-
       ;; Clear grid to empty
       (let
-        [i : i64 (cast 0 : i64)]
+        [i : i64 0]
         (while (< i size)
           (begin
             (array-set! grid i TILE-EMPTY)
-            (set! i (+ i (cast 1 : i64))))))
-
+            (set! i (+ i 1)))))
       ;; Top 2 rows always empty (sky)
       (let
-        [c : i64 (cast 0 : i64)]
+        [c : i64 0]
         (while (< c cols)
           (begin
             (array-set! grid c TILE-EMPTY)
             (array-set! grid (+ cols c) TILE-EMPTY)
-            (set! c (+ c (cast 1 : i64))))))
-
+            (set! c (+ c 1)))))
       ;; Bottom row: solid ground
       (let
-        [c : i64 (cast 0 : i64)]
+        [c : i64 0]
         (while (< c cols)
           (begin
-            (array-set! grid (+ (* (- rows (cast 1 : i64)) cols) c) TILE-GROUND)
-            (set! c (+ c (cast 1 : i64))))))
-
+            (array-set! grid (+ (* (- rows 1) cols) c) TILE-GROUND)
+            (set! c (+ c 1)))))
       ;; Second-to-bottom row: mostly ground, some brick variation
       (let
-        [c : i64 (cast 0 : i64)]
+        [c : i64 0]
         (while (< c cols)
           (begin
-            (when (= (wfc-rng-int (cast 5 : i64)) (cast 0 : i64))
+            (when
+              (= (wfc-rng-int 5) 0)
               (begin
-                (array-set! grid (+ (* (- rows (cast 2 : i64)) cols) c) TILE-BRICK)
-                (when (= (wfc-rng-int (cast 3 : i64)) (cast 0 : i64))
-                  (array-set! grid (+ (* (- rows (cast 3 : i64)) cols) c) TILE-BRICK))))
-            (set! c (+ c (cast 1 : i64))))))
-
+                (array-set! grid (+ (* (- rows 2) cols) c) TILE-BRICK)
+                (when
+                  (= (wfc-rng-int 3) 0)
+                  (array-set! grid (+ (* (- rows 3) cols) c) TILE-BRICK))))
+            (set! c (+ c 1)))))
       ;; Pipe stacks: 1-2 pipes at random x positions
       (let
-        [pipe-count : i64 (+ (cast 1 : i64) (wfc-rng-int (cast 2 : i64)))]
-        [p : i64 (cast 0 : i64)]
+        [pipe-count : i64 (+ 1 (wfc-rng-int 2))]
+        [p : i64 0]
         (while (< p pipe-count)
           (begin
             (let
-              [pipe-x : i64 (+ (cast 5 : i64) (wfc-rng-int (- cols (cast 10 : i64))))]
-              [pipe-height : i64 (+ (cast 2 : i64) (wfc-rng-int (cast 3 : i64)))]
-              [ground-row : i64 (- rows (cast 2 : i64))]
-              [top-row : i64 (- ground-row (- pipe-height (cast 1 : i64)))]
+              [pipe-x : i64 (+ 5 (wfc-rng-int (- cols 10)))]
+              [pipe-height : i64 (+ 2 (wfc-rng-int 3))]
+              [ground-row : i64 (- rows 2)]
+              [top-row : i64 (- ground-row (- pipe-height 1))]
               (begin
                 ;; Place pipe body from ground-row down to top-row+1
                 (let
                   [r : i64 ground-row]
-                  (while (>= r (+ top-row (cast 1 : i64)))
+                  (while (>= r (+ top-row 1))
                     (begin
                       (array-set! grid (+ (* r cols) pipe-x) TILE-PIPE-BODY)
-                      (set! r (- r (cast 1 : i64))))))
+                      (set! r (- r 1)))))
                 ;; Place pipe top at top-row
-                (when (>= top-row 0)
+                (when
+                  (>= top-row 0)
                   (array-set! grid (+ (* top-row cols) pipe-x) TILE-PIPE-TOP))))
-            (set! p (+ p (cast 1 : i64))))))
-
+            (set! p (+ p 1)))))
       ;; Floating platforms: 3-5 platforms at mid-height
       (let
-        [platform-count : i64 (+ (cast 3 : i64) (wfc-rng-int (cast 3 : i64)))]
-        [pl : i64 (cast 0 : i64)]
+        [platform-count : i64 (+ 3 (wfc-rng-int 3))]
+        [pl : i64 0]
         (while (< pl platform-count)
           (begin
             (let
-              [plat-y : i64 (+ (cast 4 : i64) (wfc-rng-int (- rows (cast 8 : i64))))]
-              [plat-x : i64 (+ (cast 3 : i64) (wfc-rng-int (- cols (cast 6 : i64))))]
-              [plat-w : i64 (+ (cast 3 : i64) (wfc-rng-int (cast 4 : i64)))]
-              [px : i64 (cast 0 : i64)]
+              [plat-y : i64 (+ 4 (wfc-rng-int (- rows 8)))]
+              [plat-x : i64 (+ 3 (wfc-rng-int (- cols 6)))]
+              [plat-w : i64 (+ 3 (wfc-rng-int 4))]
+              [px : i64 0]
               (while (< px plat-w)
                 (begin
-                  (when (< (+ plat-x px) cols)
-                    (array-set! grid (+ (* plat-y cols) (+ plat-x px)) TILE-PLATFORM))
-                  (set! px (+ px (cast 1 : i64))))))
-            (set! pl (+ pl (cast 1 : i64))))))
-
+                  (when
+                    (< (+ plat-x px) cols)
+                    (array-set!
+                      grid
+                      (+ (* plat-y cols) (+ plat-x px))
+                      TILE-PLATFORM))
+                  (set! px (+ px 1)))))
+            (set! pl (+ pl 1)))))
       ;; Question blocks: place above solid ground where reachable
       (let
-        [c : i64 (cast 3 : i64)]
-        (while (< c (- cols (cast 3 : i64)))
+        [c : i64 3]
+        (while (< c (- cols 3))
           (begin
-            (when (= (% c (cast 5 : i64)) (cast 2 : i64))
+            (when
+              (= (% c 5) 2)
               (let
-                [ground-row : i64 (- rows (cast 2 : i64))]
+                [ground-row : i64 (- rows 2)]
                 (begin
                   ;; Find ground in this column
-                  (while (and (>= ground-row 0) (= (array-ref grid (+ (* ground-row cols) c)) TILE-EMPTY))
+                  (while (and
+                    (>= ground-row 0)
+                    (= (array-ref grid (+ (* ground-row cols) c)) TILE-EMPTY))
                     (set! ground-row (- ground-row 1)))
                   ;; If ground found and there is space above, place question block
-                  (when (>= ground-row 2)
+                  (when
+                    (>= ground-row 2)
                     (let
                       [block-row : i64 (- ground-row 1)]
-                      (when (= (array-ref grid (+ (* block-row cols) c)) TILE-EMPTY)
+                      (when
+                        (= (array-ref grid (+ (* block-row cols) c)) TILE-EMPTY)
                         (array-set! grid (+ (* block-row cols) c) TILE-QUESTION)))))))
             (set! c (+ c 1)))))
-
       ;; Brick ceilings: horizontal rows of bricks creating secret areas underneath
       (let
-        [ceiling-count : i64 (+ (cast 1 : i64) (wfc-rng-int (cast 3 : i64)))]
-        [c : i64 (cast 0 : i64)]
+        [ceiling-count : i64 (+ 1 (wfc-rng-int 3))]
+        [c : i64 0]
         (while (< c ceiling-count)
           (begin
             (let
-              [cy : i64 (+ (cast 3 : i64) (wfc-rng-int (- rows (cast 7 : i64))))]
-              [cx : i64 (+ (cast 3 : i64) (wfc-rng-int (- cols (cast 10 : i64))))]
-              [cw : i64 (+ (cast 3 : i64) (wfc-rng-int (cast 5 : i64)))]
-              [px : i64 (cast 0 : i64)]
+              [cy : i64 (+ 3 (wfc-rng-int (- rows 7)))]
+              [cx : i64 (+ 3 (wfc-rng-int (- cols 10)))]
+              [cw : i64 (+ 3 (wfc-rng-int 5))]
+              [px : i64 0]
               (while (< px cw)
                 (begin
-                  (when (< (+ cx px) (- cols 2))
+                  (when
+                    (< (+ cx px) (- cols 2))
                     (array-set! grid (+ (* cy cols) (+ cx px)) TILE-BRICK))
-                  (set! px (+ px (cast 1 : i64))))))
-            (set! c (+ c (cast 1 : i64))))))
-
+                  (set! px (+ px 1)))))
+            (set! c (+ c 1)))))
       ;; Small brick barriers attached to platforms or ground (secret alcoves)
       (let
-        [barrier-count : i64 (wfc-rng-int (cast 3 : i64))]
-        [b : i64 (cast 0 : i64)]
+        [barrier-count : i64 (wfc-rng-int 3)]
+        [b : i64 0]
         (while (< b barrier-count)
           (begin
             (let
-              [bc : i64 (+ (cast 4 : i64) (wfc-rng-int (- cols (cast 8 : i64))))]
-              [br : i64 (+ (cast 4 : i64) (wfc-rng-int (- rows (cast 7 : i64))))]
+              [bc : i64 (+ 4 (wfc-rng-int (- cols 8)))]
+              [br : i64 (+ 4 (wfc-rng-int (- rows 7)))]
               (begin
                 ;; Place a small L-shaped brick cluster if there is something solid nearby
-                (when (> (array-ref grid (+ (* br cols) bc)) TILE-EMPTY)
+                (when
+                  (> (array-ref grid (+ (* br cols) bc)) TILE-EMPTY)
                   (begin
                     (array-set! grid (+ (* br cols) bc) TILE-BRICK)
-                    (when (< (+ bc 1) cols)
+                    (when
+                      (< (+ bc 1) cols)
                       (array-set! grid (+ (* br cols) (+ bc 1)) TILE-BRICK))
-                    (when (> (- br 1) 0)
+                    (when
+                      (> (- br 1) 0)
                       (array-set! grid (+ (* (- br 1) cols) bc) TILE-BRICK))))))
-            (set! b (+ b (cast 1 : i64))))))
-
+            (set! b (+ b 1)))))
       true)))
 
 ;; Copy WFC grid to level array
-(define (wfc-to-level [grid : (Array i64)] [level : (Array i64)] [cols : i64] [rows : i64]) : unit
+(define (wfc-to-level
+  [grid : (Array i64)]
+  [level : (Array i64)]
+  [cols : i64]
+  [rows : i64]) : unit
   (let
     [size : i64 (* cols rows)]
-    [i : i64 (cast 0 : i64)]
+    [i : i64 0]
     (while (< i size)
       (begin
         (array-set! level i (array-ref grid i))
-        (set! i (+ i (cast 1 : i64)))))))
+        (set! i (+ i 1))))))

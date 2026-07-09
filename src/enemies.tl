@@ -5,29 +5,23 @@
 
 ;; Enemy system: simple patrol enemies
 ;; Enemies walk back and forth, turn at walls and edges
-
 ;; Enemy constants
 (define ENEMY-W : f64
   28.0)
-
 (define ENEMY-H : f64
   28.0)
-
 (define ENEMY-HW : f64
   14.0)
-
 (define ENEMY-HH : f64
   14.0)
-
 (define ENEMY-SPEED : f64
   80.0)
-
 (define ENEMY-GRAVITY : f64
   1400.0)
 
 ;; Maximum number of enemies
 (define MAX-ENEMIES : i64
-  (cast 16 : i64))
+  16)
 
 ;; Enemy struct
 (defstruct Enemy
@@ -42,17 +36,16 @@
 ;; Enemy array (global for game loop, testable)
 (define enemies : (Array Enemy)
   (make-array Enemy MAX-ENEMIES))
-
 (define enemy-count : i64
-  (cast 0 : i64))
+  0)
 
 ;; Initialize enemy array (all dead)
 (define (enemies-init) : unit
-  (let [i : i64 0]
+  (let
+    [i : i64 0]
     (while (< i MAX-ENEMIES)
       (begin
-        (array-set! enemies i
-          (Enemy 0.0 0.0 0.0 0.0 (cast 1 : i64) false false))
+        (array-set! enemies i (Enemy 0.0 0.0 0.0 0.0 1 false false))
         (set! i (+ i 1))))))
 
 ;; Spawn an enemy at a position
@@ -60,29 +53,46 @@
   (if (>= enemy-count MAX-ENEMIES)
     false
     (begin
-      (array-set! enemies enemy-count
-        (Enemy ex ey 0.0 0.0 (cast 1 : i64) true false))
+      (array-set! enemies enemy-count (Enemy ex ey 0.0 0.0 1 true false))
       (set! enemy-count (+ enemy-count 1))
       true)))
 
 ;; Check if there's ground ahead in the walking direction
-(define (ground-ahead? [level : (Array i64)] [cols : i64] [rows : i64] [ex : f64] [ey : f64] [dir : i64]) : bool
+(define (ground-ahead?
+  [level : (Array i64)]
+  [cols : i64]
+  [rows : i64]
+  [ex : f64]
+  [ey : f64]
+  [dir : i64]) : bool
   (let
     [ahead-x : f64 (+ ex (* (cast dir : f64) (+ ENEMY-HW 2.0)))]
     [check-y : f64 (+ (+ ey ENEMY-HH) 4.0)]
     (point-solid? level cols rows ahead-x check-y)))
 
 ;; Check if enemy collides with a wall in the walking direction
-(define (wall-ahead? [level : (Array i64)] [cols : i64] [rows : i64] [ex : f64] [ey : f64] [dir : i64]) : bool
+(define (wall-ahead?
+  [level : (Array i64)]
+  [cols : i64]
+  [rows : i64]
+  [ex : f64]
+  [ey : f64]
+  [dir : i64]) : bool
   (let
     [ahead-x : f64 (+ ex (* (cast dir : f64) (+ ENEMY-HW 2.0)))]
     (point-solid? level cols rows ahead-x ey)))
 
 ;; Update a single enemy
-(define (enemy-update-single [dt : f64] [level : (Array i64)] [cols : i64] [rows : i64] [idx : i64]) : unit
+(define (enemy-update-single
+  [dt : f64]
+  [level : (Array i64)]
+  [cols : i64]
+  [rows : i64]
+  [idx : i64]) : unit
   (let
     [e : Enemy (array-ref enemies idx)]
-    (when (struct-get e alive)
+    (when
+      (struct-get e alive)
       (let
         [x : f64 (struct-get e x)]
         [y : f64 (struct-get e y)]
@@ -108,18 +118,21 @@
           (set! x (resolve-horizontal level cols rows x y (* new-vx dt)))
           ;; Move vertically with collision
           (let
-            [vresult : VerticalResult (resolve-vertical level cols rows x y (* vy dt))]
+            [vresult : VerticalResult
+              (resolve-vertical level cols rows x y (* vy dt))]
             (begin
               (set! y (struct-get vresult py))
               (set! on-ground (struct-get vresult on-ground))
-              (when on-ground
-                (set! vy 0.0))))
+              (when on-ground (set! vy 0.0))))
           ;; Store updated enemy
-          (array-set! enemies idx
-            (Enemy x y new-vx vy new-dir true on-ground)))))))
+          (array-set! enemies idx (Enemy x y new-vx vy new-dir true on-ground)))))))
 
 ;; Update all enemies
-(define (enemies-update [dt : f64] [level : (Array i64)] [cols : i64] [rows : i64]) : unit
+(define (enemies-update
+  [dt : f64]
+  [level : (Array i64)]
+  [cols : i64]
+  [rows : i64]) : unit
   (let
     [i : i64 0]
     (while (< i enemy-count)
@@ -128,7 +141,12 @@
         (set! i (+ i 1))))))
 
 ;; Check if player stomps enemy (player above, falling)
-(define (player-stomps-enemy? [px : f64] [py : f64] [pvy : f64] [ex : f64] [ey : f64]) : bool
+(define (player-stomps-enemy?
+  [px : f64]
+  [py : f64]
+  [pvy : f64]
+  [ex : f64]
+  [ey : f64]) : bool
   (and
     (> pvy 0.0)
     (< (+ py PLAYER-HH) (+ (- ey ENEMY-HH) 8.0))
@@ -147,32 +165,39 @@
 ;; Returns: 0 = no collision, 1 = stomp, 2 = side hit
 (define (player-enemy-collide [px : f64] [py : f64] [pvy : f64]) : i64
   (let
-    [result : i64 (cast 0 : i64)]
+    [result : i64 0]
     [i : i64 0]
     (begin
       (while (< i enemy-count)
         (let
           [e : Enemy (array-ref enemies i)]
           (begin
-            (when (struct-get e alive)
+            (when
+              (struct-get e alive)
               (let
                 [ex : f64 (struct-get e x)]
                 [ey : f64 (struct-get e y)]
-                (when (player-enemy-overlap? px py ex ey)
+                (when
+                  (player-enemy-overlap? px py ex ey)
                   (if (player-stomps-enemy? px py pvy ex ey)
                     (begin
-                      (array-set! enemies i
+                      (array-set!
+                        enemies
+                        i
                         (Enemy ex ey 0.0 0.0 (struct-get e dir) false false))
-                      (set! result (cast 1 : i64)))
+                      (set! result 1))
                     (begin
-                      (when (not (player-take-damage))
-                      (set! result (cast 2 : i64))))))))
+                      (when (not (player-take-damage)) (set! result 2)))))))
             (set! i (+ i 1)))))
       result)))
 
 ;; Spawn enemies along the level ground with custom spacing
 ;; spacing: minimum columns between enemy spawns (smaller = more enemies)
-(define (enemies-spawn-in-level-with-spacing [level : (Array i64)] [cols : i64] [rows : i64] [spacing : i64]) : unit
+(define (enemies-spawn-in-level-with-spacing
+  [level : (Array i64)]
+  [cols : i64]
+  [rows : i64]
+  [spacing : i64]) : unit
   (begin
     (enemies-init)
     (let
@@ -180,16 +205,21 @@
       [col : i64 5]
       (while (< col (- cols 5))
         (begin
-          (when (>= (- col last-col) spacing)
+          (when
+            (>= (- col last-col) spacing)
             (let
               [row : i64 (- rows 1)]
               (begin
-                (while (and (>= row 0) (not (tile-solid? level cols rows col row)))
+                (while (and
+                  (>= row 0)
+                  (not (tile-solid? level cols rows col row)))
                   (set! row (- row 1)))
-                (when (>= row 0)
+                (when
+                  (>= row 0)
                   (begin
                     (let
-                      [ex : f64 (+ (* (cast col : f64) TILE-SIZE-F) (* TILE-SIZE-F 0.5))]
+                      [ex : f64
+                        (+ (* (cast col : f64) TILE-SIZE-F) (* TILE-SIZE-F 0.5))]
                       [ey : f64 (- (* (cast row : f64) TILE-SIZE-F) ENEMY-HH)]
                       (enemy-spawn ex ey))
                     (set! last-col col))))))
@@ -198,7 +228,7 @@
 ;; Spawn enemies along the level ground with default spacing
 ;; Places enemies at regular intervals, skipping start and goal zones
 (define (enemies-spawn-in-level [level : (Array i64)] [cols : i64] [rows : i64]) : unit
-  (enemies-spawn-in-level-with-spacing level cols rows (cast 10 : i64)))
+  (enemies-spawn-in-level-with-spacing level cols rows 10))
 
 ;; Kill all enemies touching player (for star power-up)
 ;; Returns number of enemies killed
@@ -211,7 +241,8 @@
         (let
           [e : Enemy (array-ref enemies i)]
           (begin
-            (when (struct-get e alive)
+            (when
+              (struct-get e alive)
               (let
                 [ex : f64 (struct-get e x)]
                 [ey : f64 (struct-get e y)]
@@ -219,9 +250,12 @@
                 [dy : f64 (- py ey)]
                 [hw : f64 (+ PLAYER-HW ENEMY-HW)]
                 [hh : f64 (+ PLAYER-HH ENEMY-HH)]
-                (when (and (< (abs-f64 dx) hw) (< (abs-f64 dy) hh))
+                (when
+                  (and (< (abs-f64 dx) hw) (< (abs-f64 dy) hh))
                   (begin
-                    (array-set! enemies i
+                    (array-set!
+                      enemies
+                      i
                       (Enemy
                         (struct-get e x)
                         (struct-get e y)
@@ -246,7 +280,8 @@
         (let
           [e : Enemy (array-ref enemies i)]
           (begin
-            (when (struct-get e alive)
+            (when
+              (struct-get e alive)
               (let
                 [ex : f64 (struct-get e x)]
                 [ey : f64 (struct-get e y)]
@@ -254,9 +289,12 @@
                 [dy : f64 (- fy ey)]
                 [hw : f64 (+ 4.0 ENEMY-HW)]
                 [hh : f64 (+ 4.0 ENEMY-HH)]
-                (when (and (< (abs-f64 dx) hw) (< (abs-f64 dy) hh))
+                (when
+                  (and (< (abs-f64 dx) hw) (< (abs-f64 dy) hh))
                   (begin
-                    (array-set! enemies i
+                    (array-set!
+                      enemies
+                      i
                       (Enemy
                         (struct-get e x)
                         (struct-get e y)

@@ -4,7 +4,7 @@
 ;; Game state management: lives, death, respawn, timer, game over, level complete
 ;; Starting lives
 (define START-LIVES : i64
-  (cast 3 : i64))
+  3)
 
 ;; Mutable timer start value (changed per level)
 (define start-duration : f64
@@ -16,13 +16,13 @@
 
 ;; Game state enum
 (define STATE-PLAYING : i64
-  (cast 0 : i64))
+  0)
 (define STATE-GAME-OVER : i64
-  (cast 1 : i64))
+  1)
 (define STATE-LEVEL-COMPLETE : i64
-  (cast 2 : i64))
+  2)
 (define STATE-WORLD-COMPLETE : i64
-  (cast 3 : i64))
+  3)
 
 ;; Global state
 (define lives : i64
@@ -144,21 +144,21 @@
 
 ;; Title screen state
 (define STATE-TITLE : i64
-  (cast 4 : i64))
+  4)
 
 ;; Pause state
 (define STATE-PAUSED : i64
-  (cast 5 : i64))
+  5)
 
 ;; Fade transition state
 (define STATE-FADE-OUT : i64
-  (cast 6 : i64))
+  6)
 (define STATE-FADE-IN : i64
-  (cast 7 : i64))
+  7)
 
 ;; World map state
 (define STATE-MAP : i64
-  (cast 8 : i64))
+  8)
 
 ;; Check if in world map
 (define (is-map?) : bool

@@ -9,9 +9,7 @@
   test-coins-init
   (begin
     (coins-init)
-    (assert-true
-      (= coin-count 0)
-      "coin-count should be 0 after init")
+    (assert-true (= coin-count 0) "coin-count should be 0 after init")
     (let
       [c : Coin (array-ref coins 0)]
       (assert-false
@@ -24,24 +22,16 @@
   (begin
     (coins-init)
     (set! coin-count 0)
-    (assert-true
-      (coin-spawn 100.0 50.0)
-      "should spawn a coin")
-    (assert-true
-      (= coin-count 1)
-      "coin-count should be 1 after spawn")
+    (assert-true (coin-spawn 100.0 50.0) "should spawn a coin")
+    (assert-true (= coin-count 1) "coin-count should be 1 after spawn")
     (let
       [c : Coin (array-ref coins 0)]
       (begin
-        (assert-true
-          (struct-get c active)
-          "spawned coin should be active")
+        (assert-true (struct-get c active) "spawned coin should be active")
         (assert-true
           (= (struct-get c x) 100.0)
           "spawned coin x should be 100.0")
-        (assert-true
-          (= (struct-get c y) 50.0)
-          "spawned coin y should be 50.0")))))
+        (assert-true (= (struct-get c y) 50.0) "spawned coin y should be 50.0")))))
 
 ;; Test: coin-spawn fails when max reached
 (test
@@ -85,15 +75,11 @@
     (let
       [collected : i64 (coins-collect 64.0 64.0)]
       (begin
-        (assert-true
-          (= collected 1)
-          "should collect 1 coin")
+        (assert-true (= collected 1) "should collect 1 coin")
         (assert-true
           (= score 100)
           "score should be 100 after collecting 1 coin")
-        (assert-true
-          (= coins-collected 1)
-          "coins-collected should be 1")))))
+        (assert-true (= coins-collected 1) "coins-collected should be 1")))))
 
 ;; Test: collected coin becomes inactive
 (test
@@ -122,12 +108,8 @@
     (let
       [collected2 : i64 (coins-collect 64.0 64.0)]
       (begin
-        (assert-true
-          (= collected2 0)
-          "should not collect inactive coin again")
-        (assert-true
-          (= score 100)
-          "score should still be 100")))))
+        (assert-true (= collected2 0) "should not collect inactive coin again")
+        (assert-true (= score 100) "score should still be 100")))))
 
 ;; Test: multiple coins can be collected in one frame
 (test
@@ -142,12 +124,8 @@
     (let
       [collected : i64 (coins-collect 64.0 64.0)]
       (begin
-        (assert-true
-          (= collected 3)
-          "should collect all 3 overlapping coins")
-        (assert-true
-          (= score 300)
-          "score should be 300 after 3 coins")))))
+        (assert-true (= collected 3) "should collect all 3 overlapping coins")
+        (assert-true (= score 300) "score should be 300 after 3 coins")))))
 
 ;; Test: score-reset clears score
 (test
@@ -159,24 +137,19 @@
     (coin-spawn 64.0 64.0)
     (coins-collect 64.0 64.0)
     (score-reset)
-    (assert-true
-      (= score 0)
-      "score should be 0 after reset")
+    (assert-true (= score 0) "score should be 0 after reset")
     (assert-true
       (= coins-collected 0)
       "coins-collected should be 0 after reset")))
 
 ;; Mushroom tests
-
 ;; Test: mushrooms-init clears all mushrooms
 (test
   test-mushrooms-init
   (begin
     (mushrooms-init)
     (set! mushroom-count 0)
-    (assert-true
-      (= mushroom-count 0)
-      "mushroom-count should be 0 after init")
+    (assert-true (= mushroom-count 0) "mushroom-count should be 0 after init")
     (let
       [m : Mushroom (array-ref mushrooms 0)]
       (assert-false
@@ -189,18 +162,12 @@
   (begin
     (mushrooms-init)
     (set! mushroom-count 0)
-    (assert-true
-      (mushroom-spawn 100.0 50.0)
-      "should spawn a mushroom")
-    (assert-true
-      (= mushroom-count 1)
-      "mushroom-count should be 1 after spawn")
+    (assert-true (mushroom-spawn 100.0 50.0) "should spawn a mushroom")
+    (assert-true (= mushroom-count 1) "mushroom-count should be 1 after spawn")
     (let
       [m : Mushroom (array-ref mushrooms 0)]
       (begin
-        (assert-true
-          (struct-get m active)
-          "spawned mushroom should be active")
+        (assert-true (struct-get m active) "spawned mushroom should be active")
         (assert-true
           (= (struct-get m x) 100.0)
           "spawned mushroom x should be 100.0")
@@ -249,9 +216,7 @@
     (let
       [got : bool (mushrooms-collect 64.0 64.0)]
       (begin
-        (assert-true
-          got
-          "should collect the mushroom")
+        (assert-true got "should collect the mushroom")
         (assert-true
           player-big
           "player should be big after collecting mushroom")))))
@@ -271,16 +236,13 @@
         "mushroom should be inactive after collection"))))
 
 ;; 1-UP mushroom tests
-
 ;; Test: oneups-init clears all 1-UP mushrooms
 (test
   test-oneups-init
   (begin
     (oneups-init)
     (set! oneup-count 0)
-    (assert-true
-      (= oneup-count 0)
-      "oneup-count should be 0 after init")
+    (assert-true (= oneup-count 0) "oneup-count should be 0 after init")
     (let
       [o : OneUp (array-ref oneups 0)]
       (assert-false
@@ -293,24 +255,16 @@
   (begin
     (oneups-init)
     (set! oneup-count 0)
-    (assert-true
-      (oneup-spawn 100.0 50.0)
-      "should spawn a 1-UP mushroom")
-    (assert-true
-      (= oneup-count 1)
-      "oneup-count should be 1 after spawn")
+    (assert-true (oneup-spawn 100.0 50.0) "should spawn a 1-UP mushroom")
+    (assert-true (= oneup-count 1) "oneup-count should be 1 after spawn")
     (let
       [o : OneUp (array-ref oneups 0)]
       (begin
-        (assert-true
-          (struct-get o active)
-          "spawned 1-UP should be active")
+        (assert-true (struct-get o active) "spawned 1-UP should be active")
         (assert-true
           (= (struct-get o x) 100.0)
           "spawned 1-UP x should be 100.0")
-        (assert-true
-          (= (struct-get o y) 50.0)
-          "spawned 1-UP y should be 50.0")))))
+        (assert-true (= (struct-get o y) 50.0) "spawned 1-UP y should be 50.0")))))
 
 ;; Test: oneup-spawn fails when max reached
 (test
@@ -356,9 +310,7 @@
         (let
           [got : bool (oneups-collect 64.0 64.0)]
           (begin
-            (assert-true
-              got
-              "should collect the 1-UP")
+            (assert-true got "should collect the 1-UP")
             (assert-true
               (= lives (+ start-lives 1))
               "lives should increase by 1 after collecting 1-UP")))))))
@@ -395,7 +347,8 @@
             (array-set! lvl i TILE-EMPTY)
             (set! i (+ i 1))))
         ;; Solid floor at bottom row (row 7)
-        (let [c : i64 0]
+        (let
+          [c : i64 0]
           (while (< c 10)
             (begin
               (array-set! lvl (+ (* 7 10) c) TILE-GROUND)
@@ -405,7 +358,8 @@
         (array-set! lvl (+ (* 3 10) 4) TILE-BRICK)
         (array-set! lvl (+ (* 3 10) 5) TILE-BRICK)
         ;; Side walls at col 2 and col 6, rows 3-6
-        (let [r : i64 3]
+        (let
+          [r : i64 3]
           (while (<= r 6)
             (begin
               (array-set! lvl (+ (* r 10) 2) TILE-BRICK)
@@ -434,7 +388,8 @@
             (array-set! lvl i TILE-EMPTY)
             (set! i (+ i 1))))
         ;; Ground at bottom
-        (let [c : i64 0]
+        (let
+          [c : i64 0]
           (while (< c 10)
             (begin
               (array-set! lvl (+ (* 7 10) c) TILE-GROUND)
@@ -460,7 +415,8 @@
             (array-set! lvl i TILE-EMPTY)
             (set! i (+ i 1))))
         ;; Ground at bottom
-        (let [c : i64 0]
+        (let
+          [c : i64 0]
           (while (< c 10)
             (begin
               (array-set! lvl (+ (* 7 10) c) TILE-GROUND)
@@ -491,7 +447,8 @@
             (array-set! lvl i TILE-EMPTY)
             (set! i (+ i 1))))
         ;; Ground at bottom
-        (let [c : i64 0]
+        (let
+          [c : i64 0]
           (while (< c 10)
             (begin
               (array-set! lvl (+ (* 7 10) c) TILE-GROUND)

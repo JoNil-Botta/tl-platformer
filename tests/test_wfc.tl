@@ -15,20 +15,19 @@
     [grid1 : (Array i64) (make-test-grid (* LEVEL-COLS LEVEL-ROWS))]
     [grid2 : (Array i64) (make-test-grid (* LEVEL-COLS LEVEL-ROWS))]
     (begin
-      (wfc-generate grid1 LEVEL-COLS LEVEL-ROWS (cast 123 : i64))
-      (wfc-generate grid2 LEVEL-COLS LEVEL-ROWS (cast 123 : i64))
+      (wfc-generate grid1 LEVEL-COLS LEVEL-ROWS 123)
+      (wfc-generate grid2 LEVEL-COLS LEVEL-ROWS 123)
       (let
         [same : bool true]
-        [i : i64 (cast 0 : i64)]
+        [i : i64 0]
         (begin
           (while (< i LEVEL-SIZE)
             (begin
-              (when (not (= (array-ref grid1 i) (array-ref grid2 i)))
+              (when
+                (not (= (array-ref grid1 i) (array-ref grid2 i)))
                 (set! same false))
               (set! i (+ i 1))))
-          (assert-true
-            same
-            "same seed should produce identical grid"))))))
+          (assert-true same "same seed should produce identical grid"))))))
 
 ;; Test: generation differs with different seeds
 (test
@@ -37,20 +36,19 @@
     [grid1 : (Array i64) (make-test-grid (* LEVEL-COLS LEVEL-ROWS))]
     [grid2 : (Array i64) (make-test-grid (* LEVEL-COLS LEVEL-ROWS))]
     (begin
-      (wfc-generate grid1 LEVEL-COLS LEVEL-ROWS (cast 1 : i64))
-      (wfc-generate grid2 LEVEL-COLS LEVEL-ROWS (cast 999 : i64))
+      (wfc-generate grid1 LEVEL-COLS LEVEL-ROWS 1)
+      (wfc-generate grid2 LEVEL-COLS LEVEL-ROWS 999)
       (let
         [diff : bool false]
-        [i : i64 (cast 0 : i64)]
+        [i : i64 0]
         (begin
           (while (< i LEVEL-SIZE)
             (begin
-              (when (not (= (array-ref grid1 i) (array-ref grid2 i)))
+              (when
+                (not (= (array-ref grid1 i) (array-ref grid2 i)))
                 (set! diff true))
               (set! i (+ i 1))))
-          (assert-true
-            diff
-            "different seeds should produce different grids"))))))
+          (assert-true diff "different seeds should produce different grids"))))))
 
 ;; Test: bottom row is always solid ground
 (test
@@ -58,19 +56,21 @@
   (let
     [grid : (Array i64) (make-test-grid (* LEVEL-COLS LEVEL-ROWS))]
     (begin
-      (wfc-generate grid LEVEL-COLS LEVEL-ROWS (cast 42 : i64))
+      (wfc-generate grid LEVEL-COLS LEVEL-ROWS 42)
       (let
         [all-ground : bool true]
-        [c : i64 (cast 0 : i64)]
+        [c : i64 0]
         (begin
           (while (< c LEVEL-COLS)
             (begin
-              (when (not (= (array-ref grid (level-idx (- LEVEL-ROWS 1) c)) TILE-GROUND))
+              (when
+                (not
+                  (=
+                    (array-ref grid (level-idx (- LEVEL-ROWS 1) c))
+                    TILE-GROUND))
                 (set! all-ground false))
               (set! c (+ c 1))))
-          (assert-true
-            all-ground
-            "bottom row should be all ground tiles"))))))
+          (assert-true all-ground "bottom row should be all ground tiles"))))))
 
 ;; Test: top 2 rows are always empty
 (test
@@ -78,21 +78,21 @@
   (let
     [grid : (Array i64) (make-test-grid (* LEVEL-COLS LEVEL-ROWS))]
     (begin
-      (wfc-generate grid LEVEL-COLS LEVEL-ROWS (cast 42 : i64))
+      (wfc-generate grid LEVEL-COLS LEVEL-ROWS 42)
       (let
         [all-empty : bool true]
-        [c : i64 (cast 0 : i64)]
+        [c : i64 0]
         (begin
           (while (< c LEVEL-COLS)
             (begin
-              (when (not (= (array-ref grid (level-idx 0 c)) TILE-EMPTY))
+              (when
+                (not (= (array-ref grid (level-idx 0 c)) TILE-EMPTY))
                 (set! all-empty false))
-              (when (not (= (array-ref grid (level-idx 1 c)) TILE-EMPTY))
+              (when
+                (not (= (array-ref grid (level-idx 1 c)) TILE-EMPTY))
                 (set! all-empty false))
               (set! c (+ c 1))))
-          (assert-true
-            all-empty
-            "top 2 rows should be empty"))))))
+          (assert-true all-empty "top 2 rows should be empty"))))))
 
 ;; Test: pipe stacks are valid (PIPE-TOP has PIPE-BODY or ground below it)
 (test
@@ -100,20 +100,24 @@
   (let
     [grid : (Array i64) (make-test-grid (* LEVEL-COLS LEVEL-ROWS))]
     (begin
-      (wfc-generate grid LEVEL-COLS LEVEL-ROWS (cast 42 : i64))
+      (wfc-generate grid LEVEL-COLS LEVEL-ROWS 42)
       (let
         [valid : bool true]
-        [r : i64 (cast 2 : i64)]
+        [r : i64 2]
         (begin
           (while (< r (- LEVEL-ROWS 1))
             (begin
-              (let [c : i64 (cast 0 : i64)]
+              (let
+                [c : i64 0]
                 (while (< c LEVEL-COLS)
                   (begin
-                    (when (= (array-ref grid (level-idx r c)) TILE-PIPE-TOP)
+                    (when
+                      (= (array-ref grid (level-idx r c)) TILE-PIPE-TOP)
                       (let
                         [below : i64 (array-ref grid (level-idx (+ r 1) c))]
-                        (when (not (or (= below TILE-PIPE-BODY) (= below TILE-GROUND)))
+                        (when
+                          (not
+                            (or (= below TILE-PIPE-BODY) (= below TILE-GROUND)))
                           (set! valid false))))
                     (set! c (+ c 1)))))
               (set! r (+ r 1))))
@@ -127,23 +131,30 @@
   (let
     [grid : (Array i64) (make-test-grid (* LEVEL-COLS LEVEL-ROWS))]
     (begin
-      (wfc-generate grid LEVEL-COLS LEVEL-ROWS (cast 42 : i64))
+      (wfc-generate grid LEVEL-COLS LEVEL-ROWS 42)
       (let
         [valid : bool true]
-        [r : i64 (cast 1 : i64)]
+        [r : i64 1]
         (begin
           (while (< r (- LEVEL-ROWS 1))
             (begin
-              (let [c : i64 (cast 1 : i64)]
+              (let
+                [c : i64 1]
                 (while (< c (- LEVEL-COLS 1))
                   (begin
-                    (when (= (array-ref grid (level-idx r c)) TILE-QUESTION)
+                    (when
+                      (= (array-ref grid (level-idx r c)) TILE-QUESTION)
                       (begin
                         ;; Must have solid below
-                        (when (= (array-ref grid (level-idx (+ r 1) c)) TILE-EMPTY)
+                        (when
+                          (= (array-ref grid (level-idx (+ r 1) c)) TILE-EMPTY)
                           (set! valid false))
                         ;; Must have empty above
-                        (when (not (= (array-ref grid (level-idx (- r 1) c)) TILE-EMPTY))
+                        (when
+                          (not
+                            (=
+                              (array-ref grid (level-idx (- r 1) c))
+                              TILE-EMPTY))
                           (set! valid false))))
                     (set! c (+ c 1)))))
               (set! r (+ r 1))))
@@ -157,20 +168,18 @@
   (let
     [grid : (Array i64) (make-test-grid (* LEVEL-COLS LEVEL-ROWS))]
     (begin
-      (wfc-generate grid LEVEL-COLS LEVEL-ROWS (cast 42 : i64))
+      (wfc-generate grid LEVEL-COLS LEVEL-ROWS 42)
       (let
         [valid : bool true]
-        [i : i64 (cast 0 : i64)]
+        [i : i64 0]
         (begin
           (while (< i LEVEL-SIZE)
             (begin
-              (let [t : i64 (array-ref grid i)]
-                (when (or (< t 0) (> t 7))
-                  (set! valid false)))
+              (let
+                [t : i64 (array-ref grid i)]
+                (when (or (< t 0) (> t 7)) (set! valid false)))
               (set! i (+ i 1))))
-          (assert-true
-            valid
-            "all tiles should be valid types 0-7"))))))
+          (assert-true valid "all tiles should be valid types 0-7"))))))
 
 ;; Test: wfc-to-level copies grid correctly
 (test
@@ -179,20 +188,19 @@
     [grid : (Array i64) (make-test-grid (* LEVEL-COLS LEVEL-ROWS))]
     [lvl : (Array i64) (make-test-grid (* LEVEL-COLS LEVEL-ROWS))]
     (begin
-      (wfc-generate grid LEVEL-COLS LEVEL-ROWS (cast 42 : i64))
+      (wfc-generate grid LEVEL-COLS LEVEL-ROWS 42)
       (wfc-to-level grid lvl LEVEL-COLS LEVEL-ROWS)
       (let
         [same : bool true]
-        [i : i64 (cast 0 : i64)]
+        [i : i64 0]
         (begin
           (while (< i LEVEL-SIZE)
             (begin
-              (when (not (= (array-ref grid i) (array-ref lvl i)))
+              (when
+                (not (= (array-ref grid i) (array-ref lvl i)))
                 (set! same false))
               (set! i (+ i 1))))
-          (assert-true
-            same
-            "wfc-to-level should copy all tiles exactly"))))))
+          (assert-true same "wfc-to-level should copy all tiles exactly"))))))
 
 ;; Test: at least one pipe exists in level
 (test
@@ -200,19 +208,16 @@
   (let
     [grid : (Array i64) (make-test-grid (* LEVEL-COLS LEVEL-ROWS))]
     (begin
-      (wfc-generate grid LEVEL-COLS LEVEL-ROWS (cast 42 : i64))
+      (wfc-generate grid LEVEL-COLS LEVEL-ROWS 42)
       (let
         [found : bool false]
-        [i : i64 (cast 0 : i64)]
+        [i : i64 0]
         (begin
           (while (< i LEVEL-SIZE)
             (begin
-              (when (= (array-ref grid i) TILE-PIPE-TOP)
-                (set! found true))
+              (when (= (array-ref grid i) TILE-PIPE-TOP) (set! found true))
               (set! i (+ i 1))))
-          (assert-true
-            found
-            "level should contain at least one pipe"))))))
+          (assert-true found "level should contain at least one pipe"))))))
 
 ;; Test: at least one question block exists in level
 (test
@@ -220,19 +225,16 @@
   (let
     [grid : (Array i64) (make-test-grid (* LEVEL-COLS LEVEL-ROWS))]
     (begin
-      (wfc-generate grid LEVEL-COLS LEVEL-ROWS (cast 42 : i64))
+      (wfc-generate grid LEVEL-COLS LEVEL-ROWS 42)
       (let
         [found : bool false]
-        [i : i64 (cast 0 : i64)]
+        [i : i64 0]
         (begin
           (while (< i LEVEL-SIZE)
             (begin
-              (when (= (array-ref grid i) TILE-QUESTION)
-                (set! found true))
+              (when (= (array-ref grid i) TILE-QUESTION) (set! found true))
               (set! i (+ i 1))))
-          (assert-true
-            found
-            "level should contain at least one question block"))))))
+          (assert-true found "level should contain at least one question block"))))))
 
 ;; Test: at least some bricks exist in level
 (test
@@ -240,19 +242,16 @@
   (let
     [grid : (Array i64) (make-test-grid (* LEVEL-COLS LEVEL-ROWS))]
     (begin
-      (wfc-generate grid LEVEL-COLS LEVEL-ROWS (cast 42 : i64))
+      (wfc-generate grid LEVEL-COLS LEVEL-ROWS 42)
       (let
         [found : bool false]
-        [i : i64 (cast 0 : i64)]
+        [i : i64 0]
         (begin
           (while (< i LEVEL-SIZE)
             (begin
-              (when (= (array-ref grid i) TILE-BRICK)
-                (set! found true))
+              (when (= (array-ref grid i) TILE-BRICK) (set! found true))
               (set! i (+ i 1))))
-          (assert-true
-            found
-            "level should contain at least one brick"))))))
+          (assert-true found "level should contain at least one brick"))))))
 
 ;; Test: secret coins spawn in generated levels
 (test
@@ -261,7 +260,7 @@
     [grid : (Array i64) (make-test-grid (* LEVEL-COLS LEVEL-ROWS))]
     [lvl : (Array i64) (make-test-grid (* LEVEL-COLS LEVEL-ROWS))]
     (begin
-      (wfc-generate grid LEVEL-COLS LEVEL-ROWS (cast 42 : i64))
+      (wfc-generate grid LEVEL-COLS LEVEL-ROWS 42)
       (wfc-to-level grid lvl LEVEL-COLS LEVEL-ROWS)
       (coins-init)
       (set! coin-count 0)

@@ -18,21 +18,17 @@
 
 ;; Texture loading from Raylib
 (extern (LoadTexture [fileName : (Ptr u8)]) : Texture2D)
-
 (extern (UnloadTexture [texture : Texture2D]) : unit)
-
 (extern (DrawTexture
   [texture : Texture2D]
   [posX : i32]
   [posY : i32]
   [tint : Color]) : unit)
-
 (extern (DrawTextureRec
   [texture : Texture2D]
   [source : Rectangle]
   [position : Vector2]
   [tint : Color]) : unit)
-
 (extern (DrawTexturePro
   [texture : Texture2D]
   [source : Rectangle]
@@ -40,7 +36,6 @@
   [origin : Vector2]
   [rotation : f32]
   [tint : Color]) : unit)
-
 (extern (GetTime) : f64)
 
 (defstruct Vector2
@@ -57,71 +52,41 @@
 
 ;; Tile textures
 (define tile-ground : Texture2D
-  (Texture2D
-    (cast 0 : u32)
-    (cast 0 : i32)
-    (cast 0 : i32)
-    (cast 0 : i32)
-    (cast 0 : i32)))
-
+  (Texture2D 0 0 0 0 0))
 (define tile-platform : Texture2D
-  (Texture2D
-    (cast 0 : u32)
-    (cast 0 : i32)
-    (cast 0 : i32)
-    (cast 0 : i32)
-    (cast 0 : i32)))
-
+  (Texture2D 0 0 0 0 0))
 (define tile-wall : Texture2D
-  (Texture2D
-    (cast 0 : u32)
-    (cast 0 : i32)
-    (cast 0 : i32)
-    (cast 0 : i32)
-    (cast 0 : i32)))
+  (Texture2D 0 0 0 0 0))
 
 ;; Player sprite sheet
 (define player-sprite : Texture2D
-  (Texture2D
-    (cast 0 : u32)
-    (cast 0 : i32)
-    (cast 0 : i32)
-    (cast 0 : i32)
-    (cast 0 : i32)))
+  (Texture2D 0 0 0 0 0))
 
 ;; Animation frame dimensions (in the sprite sheet)
 (define PLAYER-FRAME-W : i32
-  (cast 32 : i32))
-
+  32)
 (define PLAYER-FRAME-H : i32
-  (cast 32 : i32))
-
+  32)
 (define PLAYER-FRAMES-PER-ROW : i64
-  (cast 4 : i64))
+  4)
 
 ;; Animation states
 (define ANIM-IDLE : i64
-  (cast 0 : i64))
-
+  0)
 (define ANIM-RUN : i64
-  (cast 1 : i64))
-
+  1)
 (define ANIM-JUMP : i64
-  (cast 2 : i64))
-
+  2)
 (define ANIM-FALL : i64
-  (cast 3 : i64))
+  3)
 
 ;; Current animation state
 (define player-anim-state : i64
   ANIM-IDLE)
-
 (define player-anim-timer : f64
   0.0)
-
 (define player-anim-frame : i64
-  (cast 0 : i64))
-
+  0)
 (define player-facing-right : bool
   true)
 
@@ -131,124 +96,109 @@
 
 ;; Fallback colors when textures aren't loaded
 (define COLOR-GROUND : Color
-  (Color (cast 90 : u8) (cast 60 : u8) (cast 30 : u8) (cast 255 : u8)))
-
+  (Color 90 60 30 255))
 (define COLOR-PLATFORM : Color
-  (Color (cast 139 : u8) (cast 90 : u8) (cast 43 : u8) (cast 255 : u8)))
-
+  (Color 139 90 43 255))
 (define COLOR-WALL : Color
-  (Color (cast 100 : u8) (cast 100 : u8) (cast 100 : u8) (cast 255 : u8)))
-
+  (Color 100 100 100 255))
 (define COLOR-PLAYER : Color
-  (Color (cast 220 : u8) (cast 40 : u8) (cast 40 : u8) (cast 255 : u8)))
-
+  (Color 220 40 40 255))
 (define COLOR-FLAG : Color
-  (Color (cast 50 : u8) (cast 200 : u8) (cast 50 : u8) (cast 255 : u8)))
-
+  (Color 50 200 50 255))
 (define COLOR-POLE : Color
-  (Color (cast 200 : u8) (cast 200 : u8) (cast 200 : u8) (cast 255 : u8)))
+  (Color 200 200 200 255))
 
 ;; Enemy colors
 (define COLOR-ENEMY : Color
-  (Color (cast 140 : u8) (cast 40 : u8) (cast 220 : u8) (cast 255 : u8)))
+  (Color 140 40 220 255))
 
 ;; Coin color
 (define COLOR-COIN : Color
-  (Color (cast 255 : u8) (cast 215 : u8) (cast 0 : u8) (cast 255 : u8)))
+  (Color 255 215 0 255))
 
 ;; Question block color
 (define COLOR-QUESTION : Color
-  (Color (cast 255 : u8) (cast 165 : u8) (cast 0 : u8) (cast 255 : u8)))
+  (Color 255 165 0 255))
 
 ;; Empty/used block color
 (define COLOR-EMPTY-BLOCK : Color
-  (Color (cast 139 : u8) (cast 90 : u8) (cast 43 : u8) (cast 255 : u8)))
+  (Color 139 90 43 255))
 
 ;; Brick block color
 (define COLOR-BRICK : Color
-  (Color (cast 180 : u8) (cast 70 : u8) (cast 50 : u8) (cast 255 : u8)))
+  (Color 180 70 50 255))
 
 ;; Pipe top color
 (define COLOR-PIPE-TOP : Color
-  (Color (cast 50 : u8) (cast 160 : u8) (cast 50 : u8) (cast 255 : u8)))
+  (Color 50 160 50 255))
 
 ;; Pipe body color
 (define COLOR-PIPE-BODY : Color
-  (Color (cast 40 : u8) (cast 140 : u8) (cast 40 : u8) (cast 255 : u8)))
+  (Color 40 140 40 255))
 
 ;; Mushroom color
 (define COLOR-MUSHROOM : Color
-  (Color (cast 220 : u8) (cast 60 : u8) (cast 60 : u8) (cast 255 : u8)))
+  (Color 220 60 60 255))
 
 ;; 1-UP mushroom color (green)
 (define COLOR-ONEUP : Color
-  (Color (cast 60 : u8) (cast 220 : u8) (cast 60 : u8) (cast 255 : u8)))
+  (Color 60 220 60 255))
 
 ;; Spring block color
 (define COLOR-SPRING : Color
-  (Color (cast 255 : u8) (cast 50 : u8) (cast 100 : u8) (cast 255 : u8)))
+  (Color 255 50 100 255))
 
 ;; Biome system
-(define BIOME-OVERWORLD : i64 (cast 0 : i64))
-(define BIOME-UNDERGROUND : i64 (cast 1 : i64))
-(define BIOME-CASTLE : i64 (cast 2 : i64))
+(define BIOME-OVERWORLD : i64
+  0)
+(define BIOME-UNDERGROUND : i64
+  1)
+(define BIOME-CASTLE : i64
+  2)
 
 ;; Current biome (global, set before drawing)
-(define current-biome : i64 (cast 0 : i64))
+(define current-biome : i64
+  0)
 
 ;; Background colors per biome
 (define COLOR-BG-OVERWORLD : Color
-  (Color (cast 135 : u8) (cast 206 : u8) (cast 235 : u8) (cast 255 : u8)))
-
+  (Color 135 206 235 255))
 (define COLOR-BG-UNDERGROUND : Color
-  (Color (cast 30 : u8) (cast 30 : u8) (cast 40 : u8) (cast 255 : u8)))
-
+  (Color 30 30 40 255))
 (define COLOR-BG-CASTLE : Color
-  (Color (cast 20 : u8) (cast 10 : u8) (cast 10 : u8) (cast 255 : u8)))
+  (Color 20 10 10 255))
 
 ;; Underground tile colors
 (define COLOR-UG-GROUND : Color
-  (Color (cast 80 : u8) (cast 80 : u8) (cast 80 : u8) (cast 255 : u8)))
-
+  (Color 80 80 80 255))
 (define COLOR-UG-PLATFORM : Color
-  (Color (cast 100 : u8) (cast 70 : u8) (cast 40 : u8) (cast 255 : u8)))
-
+  (Color 100 70 40 255))
 (define COLOR-UG-QUESTION : Color
-  (Color (cast 200 : u8) (cast 120 : u8) (cast 0 : u8) (cast 255 : u8)))
-
+  (Color 200 120 0 255))
 (define COLOR-UG-EMPTY-BLOCK : Color
-  (Color (cast 100 : u8) (cast 70 : u8) (cast 40 : u8) (cast 255 : u8)))
-
+  (Color 100 70 40 255))
 (define COLOR-UG-BRICK : Color
-  (Color (cast 120 : u8) (cast 60 : u8) (cast 40 : u8) (cast 255 : u8)))
-
+  (Color 120 60 40 255))
 (define COLOR-UG-PIPE-TOP : Color
-  (Color (cast 100 : u8) (cast 80 : u8) (cast 60 : u8) (cast 255 : u8)))
-
+  (Color 100 80 60 255))
 (define COLOR-UG-PIPE-BODY : Color
-  (Color (cast 90 : u8) (cast 70 : u8) (cast 50 : u8) (cast 255 : u8)))
+  (Color 90 70 50 255))
 
 ;; Castle tile colors
 (define COLOR-CASTLE-GROUND : Color
-  (Color (cast 60 : u8) (cast 60 : u8) (cast 60 : u8) (cast 255 : u8)))
-
+  (Color 60 60 60 255))
 (define COLOR-CASTLE-PLATFORM : Color
-  (Color (cast 80 : u8) (cast 80 : u8) (cast 90 : u8) (cast 255 : u8)))
-
+  (Color 80 80 90 255))
 (define COLOR-CASTLE-QUESTION : Color
-  (Color (cast 180 : u8) (cast 140 : u8) (cast 0 : u8) (cast 255 : u8)))
-
+  (Color 180 140 0 255))
 (define COLOR-CASTLE-EMPTY-BLOCK : Color
-  (Color (cast 80 : u8) (cast 80 : u8) (cast 80 : u8) (cast 255 : u8)))
-
+  (Color 80 80 80 255))
 (define COLOR-CASTLE-BRICK : Color
-  (Color (cast 140 : u8) (cast 40 : u8) (cast 30 : u8) (cast 255 : u8)))
-
+  (Color 140 40 30 255))
 (define COLOR-CASTLE-PIPE-TOP : Color
-  (Color (cast 80 : u8) (cast 80 : u8) (cast 80 : u8) (cast 255 : u8)))
-
+  (Color 80 80 80 255))
 (define COLOR-CASTLE-PIPE-BODY : Color
-  (Color (cast 70 : u8) (cast 70 : u8) (cast 70 : u8) (cast 255 : u8)))
+  (Color 70 70 70 255))
 
 ;; Get background color for current biome
 (define (biome-background-color) : Color
@@ -261,32 +211,53 @@
 (define (biome-tile-color [tile-type : i64]) : Color
   (cond
     [(= tile-type 1)
-     (if (= current-biome BIOME-UNDERGROUND) COLOR-UG-GROUND
-       (if (= current-biome BIOME-CASTLE) COLOR-CASTLE-GROUND COLOR-GROUND))]
+      (if (= current-biome BIOME-UNDERGROUND)
+        COLOR-UG-GROUND
+        (if (= current-biome BIOME-CASTLE)
+          COLOR-CASTLE-GROUND
+          COLOR-GROUND))]
     [(= tile-type 2)
-     (if (= current-biome BIOME-UNDERGROUND) COLOR-UG-PLATFORM
-       (if (= current-biome BIOME-CASTLE) COLOR-CASTLE-PLATFORM COLOR-PLATFORM))]
+      (if (= current-biome BIOME-UNDERGROUND)
+        COLOR-UG-PLATFORM
+        (if (= current-biome BIOME-CASTLE)
+          COLOR-CASTLE-PLATFORM
+          COLOR-PLATFORM))]
     [(= tile-type 3)
-     (if (= current-biome BIOME-UNDERGROUND) COLOR-UG-QUESTION
-       (if (= current-biome BIOME-CASTLE) COLOR-CASTLE-QUESTION COLOR-QUESTION))]
+      (if (= current-biome BIOME-UNDERGROUND)
+        COLOR-UG-QUESTION
+        (if (= current-biome BIOME-CASTLE)
+          COLOR-CASTLE-QUESTION
+          COLOR-QUESTION))]
     [(= tile-type 4)
-     (if (= current-biome BIOME-UNDERGROUND) COLOR-UG-EMPTY-BLOCK
-       (if (= current-biome BIOME-CASTLE) COLOR-CASTLE-EMPTY-BLOCK COLOR-EMPTY-BLOCK))]
+      (if (= current-biome BIOME-UNDERGROUND)
+        COLOR-UG-EMPTY-BLOCK
+        (if (= current-biome BIOME-CASTLE)
+          COLOR-CASTLE-EMPTY-BLOCK
+          COLOR-EMPTY-BLOCK))]
     [(= tile-type 5)
-     (if (= current-biome BIOME-UNDERGROUND) COLOR-UG-BRICK
-       (if (= current-biome BIOME-CASTLE) COLOR-CASTLE-BRICK COLOR-BRICK))]
+      (if (= current-biome BIOME-UNDERGROUND)
+        COLOR-UG-BRICK
+        (if (= current-biome BIOME-CASTLE)
+          COLOR-CASTLE-BRICK
+          COLOR-BRICK))]
     [(= tile-type 6)
-     (if (= current-biome BIOME-UNDERGROUND) COLOR-UG-PIPE-TOP
-       (if (= current-biome BIOME-CASTLE) COLOR-CASTLE-PIPE-TOP COLOR-PIPE-TOP))]
+      (if (= current-biome BIOME-UNDERGROUND)
+        COLOR-UG-PIPE-TOP
+        (if (= current-biome BIOME-CASTLE)
+          COLOR-CASTLE-PIPE-TOP
+          COLOR-PIPE-TOP))]
     [(= tile-type 7)
-     (if (= current-biome BIOME-UNDERGROUND) COLOR-UG-PIPE-BODY
-       (if (= current-biome BIOME-CASTLE) COLOR-CASTLE-PIPE-BODY COLOR-PIPE-BODY))]
+      (if (= current-biome BIOME-UNDERGROUND)
+        COLOR-UG-PIPE-BODY
+        (if (= current-biome BIOME-CASTLE)
+          COLOR-CASTLE-PIPE-BODY
+          COLOR-PIPE-BODY))]
     [(= tile-type 8) COLOR-SPRING]
-    [else (Color (cast 255 : u8) (cast 0 : u8) (cast 255 : u8) (cast 255 : u8))]))
+    [else (Color 255 0 255 255)]))
 
 ;; Check if a texture is loaded (id > 0)
 (define (texture-loaded? [tex : Texture2D]) : bool
-  (> (struct-get tex id) (cast 0 : u32)))
+  (> (struct-get tex id) 0))
 
 ;; Load all game assets
 (define (load-assets) : unit
@@ -339,7 +310,7 @@
         (set! player-anim-timer (- player-anim-timer (/ 1.0 ANIM-FPS)))
         (set!
           player-anim-frame
-          (% (+ player-anim-frame (cast 1 : i64)) PLAYER-FRAMES-PER-ROW))))))
+          (% (+ player-anim-frame 1) PLAYER-FRAMES-PER-ROW))))))
 
 (extern (DrawRectangleRec [rec : Rectangle] [color : Color]) : unit)
 
@@ -354,40 +325,54 @@
       [(= tile-type 0) unit]
       ;; Solid ground
       [(= tile-type 1)
-       (if (texture-loaded? tile-ground)
-         (DrawTexture
-           tile-ground
-           (cast sx : i32)
-           (cast sy : i32)
-           (Color (cast 255 : u8) (cast 255 : u8) (cast 255 : u8) (cast 255 : u8)))
-         (DrawRectangleRec (Rectangle sx sy tile-size tile-size) (biome-tile-color tile-type)))]
+        (if (texture-loaded? tile-ground)
+          (DrawTexture
+            tile-ground
+            (cast sx : i32)
+            (cast sy : i32)
+            (Color 255 255 255 255))
+          (DrawRectangleRec
+            (Rectangle sx sy tile-size tile-size)
+            (biome-tile-color tile-type)))]
       ;; Platform
       [(= tile-type 2)
-       (if (texture-loaded? tile-platform)
-         (DrawTexture
-           tile-platform
-           (cast sx : i32)
-           (cast sy : i32)
-           (Color (cast 255 : u8) (cast 255 : u8) (cast 255 : u8) (cast 255 : u8)))
-         (DrawRectangleRec (Rectangle sx sy tile-size tile-size) (biome-tile-color tile-type)))]
+        (if (texture-loaded? tile-platform)
+          (DrawTexture
+            tile-platform
+            (cast sx : i32)
+            (cast sy : i32)
+            (Color 255 255 255 255))
+          (DrawRectangleRec
+            (Rectangle sx sy tile-size tile-size)
+            (biome-tile-color tile-type)))]
       ;; Question block
       [(= tile-type 3)
-       (DrawRectangleRec (Rectangle sx sy tile-size tile-size) (biome-tile-color tile-type))]
+        (DrawRectangleRec
+          (Rectangle sx sy tile-size tile-size)
+          (biome-tile-color tile-type))]
       ;; Empty/used block
       [(= tile-type 4)
-       (DrawRectangleRec (Rectangle sx sy tile-size tile-size) (biome-tile-color tile-type))]
+        (DrawRectangleRec
+          (Rectangle sx sy tile-size tile-size)
+          (biome-tile-color tile-type))]
       ;; Brick block
       [(= tile-type 5)
-       (DrawRectangleRec (Rectangle sx sy tile-size tile-size) (biome-tile-color tile-type))]
+        (DrawRectangleRec
+          (Rectangle sx sy tile-size tile-size)
+          (biome-tile-color tile-type))]
       ;; Pipe top
       [(= tile-type 6)
-       (DrawRectangleRec (Rectangle sx sy tile-size tile-size) (biome-tile-color tile-type))]
+        (DrawRectangleRec
+          (Rectangle sx sy tile-size tile-size)
+          (biome-tile-color tile-type))]
       ;; Pipe body
       [(= tile-type 7)
-       (DrawRectangleRec (Rectangle sx sy tile-size tile-size) (biome-tile-color tile-type))]
+        (DrawRectangleRec
+          (Rectangle sx sy tile-size tile-size)
+          (biome-tile-color tile-type))]
       ;; Spring block
       [(= tile-type 8)
-       (DrawRectangleRec (Rectangle sx sy tile-size tile-size) COLOR-SPRING)]
+        (DrawRectangleRec (Rectangle sx sy tile-size tile-size) COLOR-SPRING)]
       [else unit])))
 
 ;; Draw the player with animation at world position (px, py)
@@ -401,7 +386,7 @@
         player-sprite
         (player-frame-rect player-anim-frame player-anim-state)
         (Vector2 dest-x dest-y)
-        (Color (cast 255 : u8) (cast 255 : u8) (cast 255 : u8) (cast 255 : u8)))
+        (Color 255 255 255 255))
       (DrawRectangleRec
         (Rectangle dest-x dest-y (- player-size 4.0) (- player-size 4.0))
         COLOR-PLAYER))))
@@ -444,6 +429,7 @@
     (DrawRectangleRec
       (Rectangle (- dest-x hw) (- dest-y hw) (* hw 2.0) (* hw 2.0))
       COLOR-ONEUP)))
+
 (define (draw-goal [gx : f64] [gy : f64] [tile-size : f32]) : unit
   (let
     [sx : f32 (world-to-screen-x gx)]
@@ -455,17 +441,9 @@
     (begin
       ;; Draw pole
       (DrawRectangleRec
-        (Rectangle
-          (+ sx (* (- ts pole-w) 0.5))
-          sy
-          pole-w
-          ts)
+        (Rectangle (+ sx (* (- ts pole-w) 0.5)) sy pole-w ts)
         COLOR-POLE)
       ;; Draw flag
       (DrawRectangleRec
-        (Rectangle
-          (+ sx 3.0)
-          (+ sy 3.0)
-          flag-w
-          flag-h)
+        (Rectangle (+ sx 3.0) (+ sy 3.0) flag-w flag-h)
         COLOR-FLAG))))

@@ -9,19 +9,14 @@
   test-lives-start-at-three
   (begin
     (game-reset)
-    (assert-i64-eq
-      lives
-      3
-      "lives should start at 3")))
+    (assert-i64-eq lives 3 "lives should start at 3")))
 
 ;; Test: game state is playing after reset
 (test
   test-state-playing-after-reset
   (begin
     (game-reset)
-    (assert-true
-      (is-playing?)
-      "game should be in playing state after reset")))
+    (assert-true (is-playing?) "game should be in playing state after reset")))
 
 ;; Test: player-die reduces lives
 (test
@@ -29,10 +24,7 @@
   (begin
     (game-reset)
     (player-die)
-    (assert-i64-eq
-      lives
-      2
-      "lives should be 2 after one death")))
+    (assert-i64-eq lives 2 "lives should be 2 after one death")))
 
 ;; Test: player-die respawns when lives remain
 (test
@@ -45,17 +37,9 @@
     (let
       [respawned : bool (player-die)]
       (begin
-        (assert-true
-          respawned
-          "should respawn when lives remain")
-        (assert-f64-eq
-          px
-          START-X
-          "player x should reset to start")
-        (assert-f64-eq
-          py
-          START-Y
-          "player y should reset to start")))))
+        (assert-true respawned "should respawn when lives remain")
+        (assert-f64-eq px START-X "player x should reset to start")
+        (assert-f64-eq py START-Y "player y should reset to start")))))
 
 ;; Test: three deaths -> game over
 (test
@@ -65,9 +49,7 @@
     (player-die)
     (player-die)
     (player-die)
-    (assert-true
-      (is-game-over?)
-      "game should be over after 3 deaths")))
+    (assert-true (is-game-over?) "game should be over after 3 deaths")))
 
 ;; Test: game over leaves lives at 0
 (test
@@ -77,10 +59,7 @@
     (player-die)
     (player-die)
     (player-die)
-    (assert-i64-eq
-      lives
-      0
-      "lives should be 0 at game over")))
+    (assert-i64-eq lives 0 "lives should be 0 at game over")))
 
 ;; Test: is-playing? is false when game over
 (test
@@ -90,9 +69,7 @@
     (player-die)
     (player-die)
     (player-die)
-    (assert-false
-      (is-playing?)
-      "should not be playing when game over")))
+    (assert-false (is-playing?) "should not be playing when game over")))
 
 ;; Test: game-reset restores lives after game over
 (test
@@ -103,13 +80,8 @@
     (player-die)
     (player-die)
     (game-reset)
-    (assert-i64-eq
-      lives
-      3
-      "lives should be restored to 3 after reset")
-    (assert-true
-      (is-playing?)
-      "game should be playing after reset")))
+    (assert-i64-eq lives 3 "lives should be restored to 3 after reset")
+    (assert-true (is-playing?) "game should be playing after reset")))
 
 ;; Test: player-die returns false at game over
 (test
@@ -120,12 +92,9 @@
     (player-die)
     (let
       [result : bool (player-die)]
-      (assert-false
-        result
-        "player-die should return false when game over"))))
+      (assert-false result "player-die should return false when game over"))))
 
 ;; Timer tests
-
 ;; Test: timer starts at TIMER-START after game-reset
 (test
   test-timer-starts-at-full
@@ -154,9 +123,7 @@
     (game-reset)
     (let
       [expired : bool (timer-update 1.0)]
-      (assert-false
-        expired
-        "timer-update should return false when not expired"))))
+      (assert-false expired "timer-update should return false when not expired"))))
 
 ;; Test: timer returns true when expired
 (test
@@ -165,9 +132,7 @@
     (game-reset)
     (let
       [expired : bool (timer-update (+ TIMER-START 1.0))]
-      (assert-true
-        expired
-        "timer-update should return true when expired"))))
+      (assert-true expired "timer-update should return true when expired"))))
 
 ;; Test: timer stops at 0
 (test
@@ -175,10 +140,7 @@
   (begin
     (game-reset)
     (timer-update (+ TIMER-START 1.0))
-    (assert-f64-eq
-      time-remaining
-      0.0
-      "timer should stop at 0")))
+    (assert-f64-eq time-remaining 0.0 "timer should stop at 0")))
 
 ;; Test: timer does not decrement when game over
 (test

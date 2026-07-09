@@ -39,9 +39,7 @@
   test-enemies-init
   (begin
     (enemies-init)
-    (assert-true
-      (= enemy-count 0)
-      "enemy-count should be 0 after init")
+    (assert-true (= enemy-count 0) "enemy-count should be 0 after init")
     (let
       [e : Enemy (array-ref enemies 0)]
       (assert-false
@@ -54,24 +52,16 @@
   (begin
     (enemies-init)
     (set! enemy-count 0)
-    (assert-true
-      (enemy-spawn 100.0 50.0)
-      "should spawn an enemy")
-    (assert-true
-      (= enemy-count 1)
-      "enemy-count should be 1 after spawn")
+    (assert-true (enemy-spawn 100.0 50.0) "should spawn an enemy")
+    (assert-true (= enemy-count 1) "enemy-count should be 1 after spawn")
     (let
       [e : Enemy (array-ref enemies 0)]
       (begin
-        (assert-true
-          (struct-get e alive)
-          "spawned enemy should be alive")
+        (assert-true (struct-get e alive) "spawned enemy should be alive")
         (assert-true
           (= (struct-get e x) 100.0)
           "spawned enemy x should be 100.0")
-        (assert-true
-          (= (struct-get e y) 50.0)
-          "spawned enemy y should be 50.0")))))
+        (assert-true (= (struct-get e y) 50.0) "spawned enemy y should be 50.0")))))
 
 ;; Test: enemy-spawn fails when max reached
 (test
@@ -103,9 +93,7 @@
       (enemies-update 0.1 level 5 3)
       (let
         [e : Enemy (array-ref enemies 0)]
-        (assert-true
-          (> (struct-get e x) 48.0)
-          "enemy should move right")))))
+        (assert-true (> (struct-get e x) 48.0) "enemy should move right")))))
 
 ;; Test: enemy turns at wall
 (test
@@ -114,8 +102,10 @@
     [level : (Array i64) (make-test-level)]
     (begin
       ;; Create a level with a wall on the right side
-      (array-set! level 2 1)  ;; wall at row 2, col 1
-      (array-set! level 7 1)  ;; wall at row 1, col 2
+      (array-set! level 2 1)
+      ;; wall at row 2, col 1
+      (array-set! level 7 1)
+      ;; wall at row 1, col 2
       (enemies-init)
       (set! enemy-count 0)
       ;; Spawn at x=32 (col 1), facing right, on ground at y=49
@@ -164,9 +154,7 @@
       (enemies-update 0.1 level 5 3)
       (let
         [e : Enemy (array-ref enemies 0)]
-        (assert-true
-          (struct-get e on-ground)
-          "enemy should land on ground")))))
+        (assert-true (struct-get e on-ground) "enemy should land on ground")))))
 
 ;; Test: player-enemy-overlap? detects overlap
 (test
@@ -215,9 +203,7 @@
       ;; Player above enemy, falling down (bottom at 37, enemy top at 36)
       (let
         [result : i64 (player-enemy-collide 64.0 23.0 100.0)]
-        (assert-true
-          (= result 1)
-          "stomp should return 1")))))
+        (assert-true (= result 1) "stomp should return 1")))))
 
 ;; Test: player-enemy-collide returns side hit result
 (test
@@ -231,9 +217,7 @@
       ;; Player beside enemy, not falling (side hit)
       (let
         [result : i64 (player-enemy-collide 50.0 50.0 0.0)]
-        (assert-true
-          (= result 2)
-          "side hit should return 2")))))
+        (assert-true (= result 2) "side hit should return 2")))))
 
 ;; Test: stomp kills enemy
 (test
@@ -248,9 +232,7 @@
       (player-enemy-collide 64.0 23.0 100.0)
       (let
         [e : Enemy (array-ref enemies 0)]
-        (assert-false
-          (struct-get e alive)
-          "enemy should be dead after stomp")))))
+        (assert-false (struct-get e alive) "enemy should be dead after stomp")))))
 
 ;; Test: enemy turns at edge (no ground ahead)
 (test
@@ -271,7 +253,8 @@
       (array-set! level 9 0)
       (array-set! level 10 1)
       (array-set! level 11 1)
-      (array-set! level 12 0)  ;; gap at col 2
+      (array-set! level 12 0)
+      ;; gap at col 2
       (array-set! level 13 1)
       (array-set! level 14 1)
       (enemies-init)
@@ -281,8 +264,7 @@
       ;; Force dir to right
       (let
         [e : Enemy (array-ref enemies 0)]
-        (array-set! enemies 0
-          (Enemy 48.0 50.0 0.0 0.0 (cast 1 : i64) true false)))
+        (array-set! enemies 0 (Enemy 48.0 50.0 0.0 0.0 1 true false)))
       ;; Update several frames to approach edge
       (enemies-update 0.1 level 5 3)
       (enemies-update 0.1 level 5 3)

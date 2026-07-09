@@ -5,72 +5,57 @@
 ;; Items and collectibles: coins, mushrooms, score tracking
 ;; Coins are placed in the level and collected on player overlap
 ;; Mushrooms spawn from question blocks and make the player big
-
 ;; Coin constants
 (define COIN-RADIUS : f64
   10.0)
-
 (define COIN-WIDTH : f64
   20.0)
-
 (define COIN-HEIGHT : f64
   20.0)
-
 (define COIN-HW : f64
   10.0)
-
 (define COIN-HH : f64
   10.0)
 
 ;; Mushroom constants
 (define MUSHROOM-W : f64
   24.0)
-
 (define MUSHROOM-H : f64
   24.0)
-
 (define MUSHROOM-HW : f64
   12.0)
-
 (define MUSHROOM-HH : f64
   12.0)
-
 (define MUSHROOM-SPEED : f64
   60.0)
-
 (define MUSHROOM-GRAVITY : f64
   1400.0)
 
 ;; Maximum coins in a level
 (define MAX-COINS : i64
-  (cast 64 : i64))
+  64)
 
 ;; Maximum mushrooms active at once
 (define MAX-MUSHROOMS : i64
-  (cast 8 : i64))
+  8)
 
 ;; 1-UP mushroom constants
 (define ONEUP-W : f64
   24.0)
-
 (define ONEUP-H : f64
   24.0)
-
 (define ONEUP-HW : f64
   12.0)
-
 (define ONEUP-HH : f64
   12.0)
-
 (define ONEUP-SPEED : f64
   60.0)
-
 (define ONEUP-GRAVITY : f64
   1400.0)
 
 ;; Maximum 1-UP mushrooms active at once
 (define MAX-ONEUPS : i64
-  (cast 4 : i64))
+  4)
 
 ;; Coin struct
 (defstruct Coin
@@ -99,56 +84,52 @@
 ;; Coin array
 (define coins : (Array Coin)
   (make-array Coin MAX-COINS))
-
 (define coin-count : i64
-  (cast 0 : i64))
+  0)
 
 ;; Mushroom array
 (define mushrooms : (Array Mushroom)
   (make-array Mushroom MAX-MUSHROOMS))
-
 (define mushroom-count : i64
-  (cast 0 : i64))
+  0)
 
 ;; 1-UP mushroom array
 (define oneups : (Array OneUp)
   (make-array OneUp MAX-ONEUPS))
-
 (define oneup-count : i64
-  (cast 0 : i64))
+  0)
 
 ;; Score tracking
 (define score : i64
-  (cast 0 : i64))
-
+  0)
 (define coins-collected : i64
-  (cast 0 : i64))
+  0)
 
 ;; Initialize coins (all inactive)
 (define (coins-init) : unit
-  (let [i : i64 0]
+  (let
+    [i : i64 0]
     (while (< i MAX-COINS)
       (begin
-        (array-set! coins i
-          (Coin 0.0 0.0 false))
+        (array-set! coins i (Coin 0.0 0.0 false))
         (set! i (+ i 1))))))
 
 ;; Initialize mushrooms (all inactive)
 (define (mushrooms-init) : unit
-  (let [i : i64 0]
+  (let
+    [i : i64 0]
     (while (< i MAX-MUSHROOMS)
       (begin
-        (array-set! mushrooms i
-          (Mushroom 0.0 0.0 0.0 0.0 false false))
+        (array-set! mushrooms i (Mushroom 0.0 0.0 0.0 0.0 false false))
         (set! i (+ i 1))))))
 
 ;; Initialize 1-UP mushrooms (all inactive)
 (define (oneups-init) : unit
-  (let [i : i64 0]
+  (let
+    [i : i64 0]
     (while (< i MAX-ONEUPS)
       (begin
-        (array-set! oneups i
-          (OneUp 0.0 0.0 0.0 0.0 false false))
+        (array-set! oneups i (OneUp 0.0 0.0 0.0 0.0 false false))
         (set! i (+ i 1))))))
 
 ;; Spawn a coin at position
@@ -156,8 +137,7 @@
   (if (>= coin-count MAX-COINS)
     false
     (begin
-      (array-set! coins coin-count
-        (Coin cx cy true))
+      (array-set! coins coin-count (Coin cx cy true))
       (set! coin-count (+ coin-count 1))
       true)))
 
@@ -166,7 +146,9 @@
   (if (>= mushroom-count MAX-MUSHROOMS)
     false
     (begin
-      (array-set! mushrooms mushroom-count
+      (array-set!
+        mushrooms
+        mushroom-count
         (Mushroom mx my MUSHROOM-SPEED 0.0 true false))
       (set! mushroom-count (+ mushroom-count 1))
       true)))
@@ -176,8 +158,7 @@
   (if (>= oneup-count MAX-ONEUPS)
     false
     (begin
-      (array-set! oneups oneup-count
-        (OneUp ox oy ONEUP-SPEED 0.0 true false))
+      (array-set! oneups oneup-count (OneUp ox oy ONEUP-SPEED 0.0 true false))
       (set! oneup-count (+ oneup-count 1))
       true)))
 
@@ -209,25 +190,28 @@
 ;; Returns number of coins collected this frame
 (define (coins-collect [px : f64] [py : f64]) : i64
   (let
-    [collected : i64 (cast 0 : i64)]
+    [collected : i64 0]
     [i : i64 0]
     (begin
       (while (< i coin-count)
         (begin
           (let
             [c : Coin (array-ref coins i)]
-            (when (struct-get c active)
+            (when
+              (struct-get c active)
               (let
                 [cx : f64 (struct-get c x)]
                 [cy : f64 (struct-get c y)]
-                (when (player-coin-overlap? px py cx cy)
+                (when
+                  (player-coin-overlap? px py cx cy)
                   (begin
                     (array-set! coins i (Coin cx cy false))
                     (set! collected (+ collected 1)))))))
           (set! i (+ i 1))))
-      (when (> collected 0)
+      (when
+        (> collected 0)
         (begin
-          (set! score (+ score (* collected (cast 100 : i64))))
+          (set! score (+ score (* collected 100)))
           (set! coins-collected (+ coins-collected collected))))
       collected)))
 
@@ -242,13 +226,18 @@
         (begin
           (let
             [m : Mushroom (array-ref mushrooms i)]
-            (when (struct-get m active)
+            (when
+              (struct-get m active)
               (let
                 [mx : f64 (struct-get m x)]
                 [my : f64 (struct-get m y)]
-                (when (player-mushroom-overlap? px py mx my)
+                (when
+                  (player-mushroom-overlap? px py mx my)
                   (begin
-                    (array-set! mushrooms i (Mushroom mx my 0.0 0.0 false false))
+                    (array-set!
+                      mushrooms
+                      i
+                      (Mushroom mx my 0.0 0.0 false false))
                     (player-grow)
                     (set! got-one true))))))
           (set! i (+ i 1))))
@@ -265,11 +254,13 @@
         (begin
           (let
             [o : OneUp (array-ref oneups i)]
-            (when (struct-get o active)
+            (when
+              (struct-get o active)
               (let
                 [ox : f64 (struct-get o x)]
                 [oy : f64 (struct-get o y)]
-                (when (player-oneup-overlap? px py ox oy)
+                (when
+                  (player-oneup-overlap? px py ox oy)
                   (begin
                     (array-set! oneups i (OneUp ox oy 0.0 0.0 false false))
                     (set! lives (+ lives 1))
@@ -278,10 +269,16 @@
       got-one)))
 
 ;; Update a single mushroom: gravity + horizontal movement + collision
-(define (mushroom-update-single [dt : f64] [level : (Array i64)] [cols : i64] [rows : i64] [idx : i64]) : unit
+(define (mushroom-update-single
+  [dt : f64]
+  [level : (Array i64)]
+  [cols : i64]
+  [rows : i64]
+  [idx : i64]) : unit
   (let
     [m : Mushroom (array-ref mushrooms idx)]
-    (when (struct-get m active)
+    (when
+      (struct-get m active)
       (let
         [x : f64 (struct-get m x)]
         [y : f64 (struct-get m y)]
@@ -293,19 +290,28 @@
         ;; Move horizontally with collision
         [new-x : f64 (resolve-horizontal level cols rows x y (* vx dt))]
         ;; If horizontal movement was blocked, reverse direction
-        [new-vx : f64 (if (= new-x x) (- 0.0 vx) vx)]
+        [new-vx : f64
+          (if (= new-x x)
+            (- 0.0 vx)
+            vx)]
         ;; Move vertically with collision
-        [vresult : VerticalResult (resolve-vertical level cols rows new-x y (* new-vy dt))]
+        [vresult : VerticalResult
+          (resolve-vertical level cols rows new-x y (* new-vy dt))]
         [new-y : f64 (struct-get vresult py)]
         [new-on-ground : bool (struct-get vresult on-ground)]
         (begin
-          (when new-on-ground
-            (set! new-vy 0.0))
-          (array-set! mushrooms idx
+          (when new-on-ground (set! new-vy 0.0))
+          (array-set!
+            mushrooms
+            idx
             (Mushroom new-x new-y new-vx new-vy true new-on-ground)))))))
 
 ;; Update all mushrooms
-(define (mushrooms-update [dt : f64] [level : (Array i64)] [cols : i64] [rows : i64]) : unit
+(define (mushrooms-update
+  [dt : f64]
+  [level : (Array i64)]
+  [cols : i64]
+  [rows : i64]) : unit
   (let
     [i : i64 0]
     (while (< i mushroom-count)
@@ -314,10 +320,16 @@
         (set! i (+ i 1))))))
 
 ;; Update a single 1-UP mushroom: gravity + horizontal movement + collision
-(define (oneup-update-single [dt : f64] [level : (Array i64)] [cols : i64] [rows : i64] [idx : i64]) : unit
+(define (oneup-update-single
+  [dt : f64]
+  [level : (Array i64)]
+  [cols : i64]
+  [rows : i64]
+  [idx : i64]) : unit
   (let
     [o : OneUp (array-ref oneups idx)]
-    (when (struct-get o active)
+    (when
+      (struct-get o active)
       (let
         [x : f64 (struct-get o x)]
         [y : f64 (struct-get o y)]
@@ -329,19 +341,28 @@
         ;; Move horizontally with collision
         [new-x : f64 (resolve-horizontal level cols rows x y (* vx dt))]
         ;; If horizontal movement was blocked, reverse direction
-        [new-vx : f64 (if (= new-x x) (- 0.0 vx) vx)]
+        [new-vx : f64
+          (if (= new-x x)
+            (- 0.0 vx)
+            vx)]
         ;; Move vertically with collision
-        [vresult : VerticalResult (resolve-vertical level cols rows new-x y (* new-vy dt))]
+        [vresult : VerticalResult
+          (resolve-vertical level cols rows new-x y (* new-vy dt))]
         [new-y : f64 (struct-get vresult py)]
         [new-on-ground : bool (struct-get vresult on-ground)]
         (begin
-          (when new-on-ground
-            (set! new-vy 0.0))
-          (array-set! oneups idx
+          (when new-on-ground (set! new-vy 0.0))
+          (array-set!
+            oneups
+            idx
             (OneUp new-x new-y new-vx new-vy true new-on-ground)))))))
 
 ;; Update all 1-UP mushrooms
-(define (oneups-update [dt : f64] [level : (Array i64)] [cols : i64] [rows : i64]) : unit
+(define (oneups-update
+  [dt : f64]
+  [level : (Array i64)]
+  [cols : i64]
+  [rows : i64]) : unit
   (let
     [i : i64 0]
     (while (< i oneup-count)
@@ -361,18 +382,22 @@
       [col : i64 4]
       (while (< col (- cols 5))
         (begin
-          (when (>= (- col last-col) spacing)
+          (when
+            (>= (- col last-col) spacing)
             (let
               [row : i64 (- rows 2)]
               (begin
                 ;; Find a spot above ground with empty space
                 (while (and (>= row 0) (tile-solid? level cols rows col row))
                   (set! row (- row 1)))
-                (when (and (>= row 1) (not (tile-solid? level cols rows col row)))
+                (when
+                  (and (>= row 1) (not (tile-solid? level cols rows col row)))
                   (begin
                     (let
-                      [cx : f64 (+ (* (cast col : f64) TILE-SIZE-F) (* TILE-SIZE-F 0.5))]
-                      [cy : f64 (- (* (cast row : f64) TILE-SIZE-F) (* TILE-SIZE-F 0.5))]
+                      [cx : f64
+                        (+ (* (cast col : f64) TILE-SIZE-F) (* TILE-SIZE-F 0.5))]
+                      [cy : f64
+                        (- (* (cast row : f64) TILE-SIZE-F) (* TILE-SIZE-F 0.5))]
                       (coin-spawn cx cy))
                     (set! last-col col))))))
           (set! col (+ col 1)))))))
@@ -388,16 +413,21 @@
           [c : i64 1]
           (while (< c (- cols 1))
             (begin
-              (when (= (array-ref level (+ (* r cols) c)) TILE-EMPTY)
+              (when
+                (= (array-ref level (+ (* r cols) c)) TILE-EMPTY)
                 (let
                   [has-ceiling : bool (tile-solid? level cols rows c (- r 1))]
                   [enclosed-left : bool (tile-solid? level cols rows (- c 1) r)]
-                  [enclosed-right : bool (tile-solid? level cols rows (+ c 1) r)]
-                  (when (and has-ceiling (or enclosed-left enclosed-right))
+                  [enclosed-right : bool
+                    (tile-solid? level cols rows (+ c 1) r)]
+                  (when
+                    (and has-ceiling (or enclosed-left enclosed-right))
                     (begin
                       (let
-                        [cx : f64 (+ (* (cast c : f64) TILE-SIZE-F) (* TILE-SIZE-F 0.5))]
-                        [cy : f64 (+ (* (cast r : f64) TILE-SIZE-F) (* TILE-SIZE-F 0.5))]
+                        [cx : f64
+                          (+ (* (cast c : f64) TILE-SIZE-F) (* TILE-SIZE-F 0.5))]
+                        [cy : f64
+                          (+ (* (cast r : f64) TILE-SIZE-F) (* TILE-SIZE-F 0.5))]
                         (coin-spawn cx cy))
                       unit))))
               (set! c (+ c 1)))))

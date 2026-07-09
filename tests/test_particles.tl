@@ -3,7 +3,6 @@
 (import "../src/particles.tl")
 
 ;; Particle system tests
-
 ;; Test: particles-init sets all particles to inactive
 (test
   particles-init-sets-all-inactive
@@ -11,8 +10,10 @@
     (particles-init)
     (assert-true (not (particle-is-active? 0)) "particle 0 should be inactive")
     (assert-true (not (particle-is-active? 1)) "particle 1 should be inactive")
-    (assert-true (not (particle-is-active? 255)) "particle 255 should be inactive")
-    (assert-true (= (particle-active-count) (cast 0 : i64)) "active count should be 0")))
+    (assert-true
+      (not (particle-is-active? 255))
+      "particle 255 should be inactive")
+    (assert-true (= (particle-active-count) 0) "active count should be 0")))
 
 ;; Test: particle-spawn creates an active particle
 (test
@@ -20,11 +21,12 @@
   (begin
     (particles-init)
     (let
-      [result : bool (particle-spawn 100.0 200.0 10.0 -20.0 0.5 3.0 PARTICLE-DUST)]
+      [result : bool
+        (particle-spawn 100.0 200.0 10.0 -20.0 0.5 3.0 PARTICLE-DUST)]
       (begin
         (assert-true result "particle-spawn should return true")
         (assert-true (particle-is-active? 0) "particle 0 should be active")
-        (assert-true (= (particle-active-count) (cast 1 : i64)) "active count should be 1")))))
+        (assert-true (= (particle-active-count) 1) "active count should be 1")))))
 
 ;; Test: spawn-dust creates multiple particles
 (test
@@ -32,7 +34,7 @@
   (begin
     (particles-init)
     (spawn-dust 100.0 200.0)
-    (assert-true (= (particle-active-count) (cast 4 : i64)) "dust should spawn 4 particles")))
+    (assert-true (= (particle-active-count) 4) "dust should spawn 4 particles")))
 
 ;; Test: spawn-coin-sparkle creates 5 particles
 (test
@@ -40,7 +42,9 @@
   (begin
     (particles-init)
     (spawn-coin-sparkle 100.0 200.0)
-    (assert-true (= (particle-active-count) (cast 5 : i64)) "sparkle should spawn 5 particles")))
+    (assert-true
+      (= (particle-active-count) 5)
+      "sparkle should spawn 5 particles")))
 
 ;; Test: spawn-stomp-burst creates 5 particles
 (test
@@ -48,7 +52,7 @@
   (begin
     (particles-init)
     (spawn-stomp-burst 100.0 200.0)
-    (assert-true (= (particle-active-count) (cast 5 : i64)) "burst should spawn 5 particles")))
+    (assert-true (= (particle-active-count) 5) "burst should spawn 5 particles")))
 
 ;; Test: particles-update decrements life and deactivates dead particles
 (test
@@ -56,9 +60,11 @@
   (begin
     (particles-init)
     (particle-spawn 100.0 200.0 10.0 -20.0 0.1 3.0 PARTICLE-DUST)
-    (assert-true (= (particle-active-count) (cast 1 : i64)) "should have 1 active particle")
+    (assert-true (= (particle-active-count) 1) "should have 1 active particle")
     (particles-update 0.2)
-    (assert-true (= (particle-active-count) (cast 0 : i64)) "particle should be dead after update")))
+    (assert-true
+      (= (particle-active-count) 0)
+      "particle should be dead after update")))
 
 ;; Test: particles-update moves particles by velocity
 (test
@@ -67,7 +73,9 @@
     (particles-init)
     (particle-spawn 100.0 200.0 10.0 -20.0 1.0 3.0 PARTICLE-DUST)
     (particles-update 0.1)
-    (assert-true (= (particle-active-count) (cast 1 : i64)) "particle should still be active")))
+    (assert-true
+      (= (particle-active-count) 1)
+      "particle should still be active")))
 
 ;; Test: particle-spawn returns false when pool is full
 (test
@@ -80,7 +88,9 @@
         (begin
           (particle-spawn 0.0 0.0 0.0 0.0 1.0 1.0 PARTICLE-DUST)
           (set! i (+ i 1)))))
-    (assert-true (= (particle-active-count) MAX-PARTICLES) "pool should be full")
+    (assert-true
+      (= (particle-active-count) MAX-PARTICLES)
+      "pool should be full")
     (let
       [result : bool (particle-spawn 0.0 0.0 0.0 0.0 1.0 1.0 PARTICLE-DUST)]
       (assert-true (not result) "spawn should fail when pool is full"))))
@@ -92,4 +102,4 @@
     (particles-init)
     (spawn-dust 0.0 0.0)
     (spawn-coin-sparkle 0.0 0.0)
-    (assert-true (= (particle-active-count) (cast 9 : i64)) "should have 9 active particles")))
+    (assert-true (= (particle-active-count) 9) "should have 9 active particles")))

@@ -53,9 +53,7 @@
     (begin
       (setup-player-in-air)
       (player-update 0.1 false false false level 5 3)
-      (assert-true
-        (> py 32.0)
-        "player should fall due to gravity"))))
+      (assert-true (> py 32.0) "player should fall due to gravity"))))
 
 ;; Test: player can move right
 (test
@@ -94,9 +92,7 @@
       (player-update 0.1 false false false level 5 3)
       (player-update 0.1 false false false level 5 3)
       (player-update 0.1 false false false level 5 3)
-      (assert-true
-        on-ground
-        "player should be on ground after falling"))))
+      (assert-true on-ground "player should be on ground after falling"))))
 
 ;; Test: player can jump when on ground
 (test
@@ -126,9 +122,7 @@
       (setup-player-in-air)
       ;; Player starts in air, try to jump immediately
       (player-update 0.1 false false true level 5 3)
-      (assert-false
-        on-ground
-        "player should not be on ground at start")
+      (assert-false on-ground "player should not be on ground at start")
       (assert-true
         (> py 32.0)
         "player should fall, not jump, when not on ground"))))
@@ -150,9 +144,7 @@
       (player-update 0.1 true false false level 5 3)
       (player-update 0.1 true false false level 5 3)
       (player-update 0.1 true false false level 5 3)
-      (assert-true
-        (<= px 64.0)
-        "player should not move past left wall"))))
+      (assert-true (<= px 64.0) "player should not move past left wall"))))
 
 ;; Test: coyote time — can jump briefly after leaving ground
 (test
@@ -196,9 +188,7 @@
       (set! prev-jump true)
       (player-update 0.1 false false false level 5 3)
       ;; After landing with buffer, should have auto-jumped
-      (assert-true
-        (< vy 0.0)
-        "jump buffer: should auto-jump on landing"))))
+      (assert-true (< vy 0.0) "jump buffer: should auto-jump on landing"))))
 
 ;; Test: variable jump height — releasing jump cuts upward velocity
 (test
@@ -248,15 +238,12 @@
             "coyote time expired: should not be able to jump"))))))
 
 ;; Big player / mushroom tests
-
 ;; Test: player starts small after reset
 (test
   test-player-starts-small
   (begin
     (player-reset)
-    (assert-false
-      player-big
-      "player should start small after reset")))
+    (assert-false player-big "player should start small after reset")))
 
 ;; Test: player-grow makes player big
 (test
@@ -264,9 +251,7 @@
   (begin
     (player-reset)
     (player-grow)
-    (assert-true
-      player-big
-      "player should be big after grow")))
+    (assert-true player-big "player should be big after grow")))
 
 ;; Test: player reset clears big state
 (test
@@ -275,9 +260,7 @@
     (player-reset)
     (player-grow)
     (player-reset)
-    (assert-false
-      player-big
-      "player should be small after reset")))
+    (assert-false player-big "player should be small after reset")))
 
 ;; Test: player-take-damage when small returns false
 (test
@@ -295,12 +278,8 @@
   (begin
     (player-reset)
     (player-grow)
-    (assert-true
-      (player-take-damage)
-      "take-damage when big should return true")
-    (assert-false
-      player-big
-      "player should shrink after damage")))
+    (assert-true (player-take-damage) "take-damage when big should return true")
+    (assert-false player-big "player should shrink after damage")))
 
 ;; Test: player-hit-ceiling is cleared each frame
 (test

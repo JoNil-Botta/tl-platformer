@@ -75,18 +75,14 @@
     [level : (Array i64) (make-test-level)]
     (let
       [result : VerticalResult (resolve-vertical level 5 3 64.0 60.0 30.0)]
-      (assert-true
-        (struct-get result on-ground)
-        "should land on ground"))))
+      (assert-true (struct-get result on-ground) "should land on ground"))))
 
 ;; Test: on-ground? detects ground below feet
 (test
   test-on-ground
   (let
     [level : (Array i64) (make-test-level)]
-    (assert-true
-      (on-ground? level 5 3 64.0 60.0)
-      "should detect ground below")))
+    (assert-true (on-ground? level 5 3 64.0 60.0) "should detect ground below")))
 
 ;; Test: on-ground? returns false in air
 (test
@@ -100,12 +96,8 @@
 ;; Test: floor-div works for negative numbers
 (test
   test-floor-div-negative
-  (assert-true
-    (= (floor-div -1 32) -1)
-    "floor-div of -1 by 32 should be -1")
-  (assert-true
-    (= (floor-div -33 32) -2)
-    "floor-div of -33 by 32 should be -2"))
+  (assert-true (= (floor-div -1 32) -1) "floor-div of -1 by 32 should be -1")
+  (assert-true (= (floor-div -33 32) -2) "floor-div of -33 by 32 should be -2"))
 
 ;; Test: point-solid? respects left wall with negative coords
 (test
@@ -145,8 +137,7 @@
             "hitting ceiling should not set on-ground")
           (assert-true
             (> (struct-get result py) 10.0)
-            "should snap below ceiling")))))
-)
+            "should snap below ceiling"))))))
 
 ;; Test: tile-solid? treats any non-zero tile as solid
 (test
@@ -165,9 +156,7 @@
         (tile-solid? level 5 3 3 0)
         "empty block (4) should be solid")
       ;; Tile 0 remains empty — not solid
-      (assert-false
-        (tile-solid? level 5 3 0 0)
-        "empty (0) should not be solid"))))
+      (assert-false (tile-solid? level 5 3 0 0) "empty (0) should not be solid"))))
 
 ;; Test: resolve-vertical reports hit-ceiling when moving up into solid
 (test

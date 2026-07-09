@@ -3,11 +3,9 @@
 
 ;; Smooth follow camera with lookahead and bounds
 ;; All values in world (pixel) coordinates
-
 ;; Camera state (top-left corner of viewport)
 (define camera-x : f64
   0.0)
-
 (define camera-y : f64
   0.0)
 
@@ -20,7 +18,11 @@
   60.0)
 
 ;; Initialize camera to center on a position
-(define (camera-init [target-x : f64] [target-y : f64] [screen-w : f64] [screen-h : f64]) : unit
+(define (camera-init
+  [target-x : f64]
+  [target-y : f64]
+  [screen-w : f64]
+  [screen-h : f64]) : unit
   (begin
     (set! camera-x (- target-x (* screen-w 0.5)))
     (set! camera-y (- target-y (* screen-h 0.5)))))
@@ -34,18 +36,22 @@
       v)))
 
 ;; Update camera to smoothly follow target with lookahead
-(define (camera-update [dt : f64] [target-x : f64] [target-y : f64] [target-vx : f64] [screen-w : f64] [screen-h : f64] [world-w : f64] [world-h : f64]) : unit
+(define (camera-update
+  [dt : f64]
+  [target-x : f64]
+  [target-y : f64]
+  [target-vx : f64]
+  [screen-w : f64]
+  [screen-h : f64]
+  [world-w : f64]
+  [world-h : f64]) : unit
   (let
     ;; Target camera position (centered on player + lookahead)
-    [target-cam-x : f64
-      (- (+ target-x (* target-vx 0.15)) (* screen-w 0.5))]
-    [target-cam-y : f64
-      (- target-y (* screen-h 0.5))]
+    [target-cam-x : f64 (- (+ target-x (* target-vx 0.15)) (* screen-w 0.5))]
+    [target-cam-y : f64 (- target-y (* screen-h 0.5))]
     ;; Smooth interpolation
-    [new-x : f64
-      (+ camera-x (* (- target-cam-x camera-x) CAMERA-SMOOTH))]
-    [new-y : f64
-      (+ camera-y (* (- target-cam-y camera-y) CAMERA-SMOOTH))]
+    [new-x : f64 (+ camera-x (* (- target-cam-x camera-x) CAMERA-SMOOTH))]
+    [new-y : f64 (+ camera-y (* (- target-cam-y camera-y) CAMERA-SMOOTH))]
     ;; Clamp to world bounds
     [max-cam-x : f64 (- world-w screen-w)]
     [max-cam-y : f64 (- world-h screen-h)]
@@ -62,7 +68,13 @@
   (cast (- (- wy camera-y) (get-shake-y)) : f32))
 
 ;; Check if a world rectangle is visible on screen
-(define (is-visible [wx : f64] [wy : f64] [ww : f64] [wh : f64] [screen-w : f64] [screen-h : f64]) : bool
+(define (is-visible
+  [wx : f64]
+  [wy : f64]
+  [ww : f64]
+  [wh : f64]
+  [screen-w : f64]
+  [screen-h : f64]) : bool
   (and
     (< (- wx camera-x) screen-w)
     (> (+ (- wx camera-x) ww) 0.0)

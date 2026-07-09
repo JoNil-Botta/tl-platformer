@@ -68,8 +68,14 @@
     (shake-reset)
     (trigger-shake 5.0 1.0)
     (update-shake 0.016)
-    (assert-equal (<= (abs (get-shake-x)) 5.0) true "shake-x should be <= intensity")
-    (assert-equal (<= (abs (get-shake-y)) 5.0) true "shake-y should be <= intensity")))
+    (assert-equal
+      (<= (abs (get-shake-x)) 5.0)
+      true
+      "shake-x should be <= intensity")
+    (assert-equal
+      (<= (abs (get-shake-y)) 5.0)
+      true
+      "shake-y should be <= intensity")))
 
 ;; Test: small/medium/large presets are ordered
 (test

@@ -2,7 +2,6 @@
 
 ;; Audio system for tl-platformer
 ;; Loads and plays sound effects via Raylib
-
 ;; Raylib audio FFI
 (extern (InitAudioDevice) : unit)
 (extern (CloseAudioDevice) : unit)
@@ -25,19 +24,19 @@
 
 ;; Sound handles
 (define snd-jump : Sound
-  (Sound (AudioStream (ptr-null : (Ptr unit)) (ptr-null : (Ptr unit)) (cast 0 : u32) (cast 0 : u32) (cast 0 : u16)) (cast 0 : u32)))
+  (Sound (AudioStream (ptr-null : (Ptr unit)) (ptr-null : (Ptr unit)) 0 0 0) 0))
 (define snd-coin : Sound
-  (Sound (AudioStream (ptr-null : (Ptr unit)) (ptr-null : (Ptr unit)) (cast 0 : u32) (cast 0 : u32) (cast 0 : u16)) (cast 0 : u32)))
+  (Sound (AudioStream (ptr-null : (Ptr unit)) (ptr-null : (Ptr unit)) 0 0 0) 0))
 (define snd-stomp : Sound
-  (Sound (AudioStream (ptr-null : (Ptr unit)) (ptr-null : (Ptr unit)) (cast 0 : u32) (cast 0 : u32) (cast 0 : u16)) (cast 0 : u32)))
+  (Sound (AudioStream (ptr-null : (Ptr unit)) (ptr-null : (Ptr unit)) 0 0 0) 0))
 (define snd-death : Sound
-  (Sound (AudioStream (ptr-null : (Ptr unit)) (ptr-null : (Ptr unit)) (cast 0 : u32) (cast 0 : u32) (cast 0 : u16)) (cast 0 : u32)))
+  (Sound (AudioStream (ptr-null : (Ptr unit)) (ptr-null : (Ptr unit)) 0 0 0) 0))
 (define snd-powerup : Sound
-  (Sound (AudioStream (ptr-null : (Ptr unit)) (ptr-null : (Ptr unit)) (cast 0 : u32) (cast 0 : u32) (cast 0 : u16)) (cast 0 : u32)))
+  (Sound (AudioStream (ptr-null : (Ptr unit)) (ptr-null : (Ptr unit)) 0 0 0) 0))
 (define snd-oneup : Sound
-  (Sound (AudioStream (ptr-null : (Ptr unit)) (ptr-null : (Ptr unit)) (cast 0 : u32) (cast 0 : u32) (cast 0 : u16)) (cast 0 : u32)))
+  (Sound (AudioStream (ptr-null : (Ptr unit)) (ptr-null : (Ptr unit)) 0 0 0) 0))
 (define snd-bump : Sound
-  (Sound (AudioStream (ptr-null : (Ptr unit)) (ptr-null : (Ptr unit)) (cast 0 : u32) (cast 0 : u32) (cast 0 : u16)) (cast 0 : u32)))
+  (Sound (AudioStream (ptr-null : (Ptr unit)) (ptr-null : (Ptr unit)) 0 0 0) 0))
 
 ;; Audio enabled flag
 (define audio-enabled : bool
@@ -71,8 +70,7 @@
 
 ;; Play a sound if audio is enabled
 (define (play-sound-if-enabled [sound : Sound]) : unit
-  (when audio-enabled
-    (PlaySound sound)))
+  (when audio-enabled (PlaySound sound)))
 
 ;; Sound trigger helpers
 (define (play-jump) : unit
